@@ -1,24 +1,25 @@
 import * as THREE from 'three'
 import React, { useEffect, useMemo, useState } from 'react'
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
-import { OrbitControls, OrthographicCamera } from '@react-three/drei'
+import { OrthographicCamera } from '@react-three/drei'
 import useMeasure from 'react-use-measure'
 import { createNoise3D } from 'simplex-noise'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader'
+import { useSpring } from '@react-spring/web'
 
 const noise = createNoise3D()
 const swingNoise = createNoise3D()
 
 const WaterChunk = (props) => {
     const [time, setTime] = useState(0)
-    const geometry = useMemo(() => {
+    const [geometry, setGeometry] = useState(() => {
         return new THREE.PlaneGeometry(
             props.size,
             props.size,
             props.resolution,
             props.resolution
         )
-    }, [])
+    })
 
     useFrame(({ clock }) => {
         setTime(clock.getElapsedTime() / 3)
@@ -34,21 +35,35 @@ const WaterChunk = (props) => {
 
             z =
                 noise(
-                    (x + props.x * props.size) * props.scale,
-                    (y + -props.y * props.size) * props.scale,
+                    (x +
+                        Math.floor(
+                            props.pos[0] - props.offset[0] / props.size
+                        ) *
+                            props.size) *
+                        props.scale,
+                    (y +
+                        Math.floor(
+                            -props.pos[1] + props.offset[1] / props.size
+                        ) *
+                            props.size) *
+                        props.scale,
                     time
                 ) * props.height
 
             position.setXYZ(i, x, y, z)
             position.needsUpdate = true
         }
-    }, [time])
+    }, [time, geometry, props])
 
     return (
         <mesh
             geometry={geometry}
             rotation={[-Math.PI / 2, 0, 0]}
-            position={[props.x * props.size, 0, props.y * props.size]}
+            position={[
+                (props.offset[0] % props.size) + props.pos[0] * props.size,
+                0,
+                (props.offset[1] % props.size) + props.pos[1] * props.size,
+            ]}
             receiveShadow={true}
         >
             <meshStandardMaterial
@@ -67,51 +82,35 @@ const Water = (props) => {
 
     const gridSize = 5
 
-    /*
     const state = useThree()
 
-    useEffect(() => {
-        const callback = (e) => {
-            let x = (2 * e.offsetX) / e.target.width - 1
-            let y = (2 * e.offsetY) / e.target.height - 1
+    const [chunks, setChunks] = useState([])
+    const [waterOffset, setWaterOffset] = useState([0, 0])
 
-            const raycaster = new THREE.Raycaster()
-            raycaster.setFromCamera(new THREE.Vector2(x, y), state.camera)
-            console.log(raycaster)
-            console.log(
-                x,
-                y,
-                raycaster.ray.intersectPlane(
-                    new THREE.Plane(new THREE.Vector3(0, 1, 0)),
-                    new THREE.Vector3(0, 0, 0)
-                )
-            )
-        }
-        document.addEventListener('mousedown', callback)
+    useFrame(() => {
+        const offset = [
+            Math.round((state.camera.position.x - 100) / size),
+            Math.round((state.camera.position.z - 100) / size),
+        ]
 
-        return () => {
-            document.removeEventListener('mousedown', callback)
-        }
-    })
-    */
-
-    const chunks = useMemo(() => {
         const result = []
         for (let x = -gridSize; x <= gridSize; x++) {
             for (let y = -gridSize; y <= gridSize; y++) {
-                result.push([x, y])
+                result.push([x + offset[0], y + offset[1]])
             }
         }
 
-        return result
+        setChunks(result)
+        setWaterOffset((waterOffset) => [waterOffset[0], waterOffset[1] + 0.02])
     }, [])
 
     return (
         <>
             {chunks.map(([x, y]) => (
                 <WaterChunk
-                    x={x}
-                    y={y}
+                    key={`${x},${y}`}
+                    pos={[x, y]}
+                    offset={waterOffset}
                     size={size}
                     resolution={resolution}
                     scale={scale}
@@ -127,6 +126,33 @@ const Camera = (props) => {
     const frustum = 800
     const horizonal = ratio < 1 ? frustum / ratio : frustum
     const vertical = ratio < 1 ? frustum : frustum * ratio
+
+    const [move, setMove] = useState(false)
+    const { x, y, z } = useSpring({
+        x: move ? 200 : 100,
+        y: 82,
+        z: 100,
+        config: {
+            mass: 1,
+            friction: 50,
+            tension: 120,
+        },
+    })
+
+    const { camera } = useThree()
+
+    /*
+    useEffect(() => {
+        setInterval(() => setMove((move) => !move), 2000)
+    }, [])
+    */
+
+    useFrame(() => {
+        camera.position.setX(x.get())
+        camera.position.setY(y.get())
+        camera.position.setZ(z.get())
+    })
+
     return (
         <OrthographicCamera
             makeDefault
@@ -137,7 +163,6 @@ const Camera = (props) => {
             right={horizonal}
             near={0.1}
             far={2000}
-            position={[100, 80, 100]}
             rotation={new THREE.Euler(-Math.PI / 6, Math.PI / 4, 0, 'YXZ')}
         />
     )
@@ -225,8 +250,6 @@ const BoatFleet = (props) => {
             }
         }
 
-        console.log(result)
-
         return result
     }, [props.boats])
 
@@ -237,7 +260,6 @@ const BoatFleet = (props) => {
 
         let maxX = -Infinity
         let maxY = -Infinity
-        console.log(screenPositions)
 
         for (const pos of screenPositions) {
             maxX = Math.max(maxX, Math.abs(pos.x))
@@ -245,7 +267,6 @@ const BoatFleet = (props) => {
         }
 
         const zoomFactor = 0.8 / Math.max(maxX, maxY)
-        console.log(maxX, maxY, zoomFactor)
         state.camera.zoom *= zoomFactor
         state.camera.updateProjectionMatrix()
     }, [boats, state.camera])
@@ -265,6 +286,8 @@ const BoatFleet = (props) => {
 
 function ShipBackground() {
     const [ref, bounds] = useMeasure()
+
+    const type = 'main'
 
     return (
         <Canvas
@@ -286,18 +309,26 @@ function ShipBackground() {
             />
 
             <Water instability={3} />
-            <Boat
-                color="goldenrod"
-                instability={3}
-                position={[0, 0]}
-            />
 
-            <BoatFleet boats={[[5, 15]]} />
+            {type === 'ocean' && (
+                <Boat
+                    color="goldenrod"
+                    instability={3}
+                    position={[0, 0]}
+                />
+            )}
 
-            <axesHelper args={[5]} />
+            {type === 'port' && (
+                <Boat
+                    color="goldenrod"
+                    instability={3}
+                    position={[0, 0]}
+                />
+            )}
+
+            {type === 'main' && <BoatFleet boats={[[5, 15]]} />}
 
             <Camera bounds={bounds} />
-            <OrbitControls />
         </Canvas>
     )
 }
