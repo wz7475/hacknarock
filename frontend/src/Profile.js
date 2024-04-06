@@ -2,8 +2,16 @@ import logo from './logo.svg'
 import { ToolBar } from './components/Toolbar'
 import { Background } from './Backgrounnd'
 import { Box, Button, Typography } from '@mui/material'
+import { useEffect, useContext } from 'react'
+import { ShipContext } from './ShipContext'
 
 function Profile(props) {
+    const shipContext = useContext(ShipContext)
+
+    useEffect(() => {
+        shipContext.setType('empty')
+    }, [])
+
     return (
         <div>
             <Box

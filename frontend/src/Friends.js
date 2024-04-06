@@ -9,7 +9,8 @@ import {
 } from '@mui/material'
 import { ToolBar } from './components/Toolbar'
 import { DataGrid } from '@mui/x-data-grid'
-import { useState } from 'react'
+import { useEffect, useContext, useState } from 'react'
+import { ShipContext } from './ShipContext'
 
 const columns = [
     {
@@ -57,6 +58,11 @@ const friendList = [
 ]
 
 export function Friends(props) {
+    const shipContext = useContext(ShipContext)
+
+    useEffect(() => {
+        shipContext.setType('empty')
+    }, [])
     const [isAddingFriend, setIsAddingFriend] = useState(false)
     const [isUserNotFound, setIsUserNotFound] = useState(false)
     const [isUserAddedSuccessfully, setIsUserAddedSuccessfully] =

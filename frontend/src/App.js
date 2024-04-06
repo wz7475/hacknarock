@@ -10,6 +10,7 @@ import Profile from './Profile'
 import SignInPage from './SignInPage'
 import SignUpPage from './SignUpPage'
 import ShipBackground from './Ships'
+import { ShipContextProvider } from './ShipContext'
 
 export default function App() {
     const [isLogged, setIsLogged] = useState(true)
@@ -43,16 +44,18 @@ export default function App() {
 
     return (
         <div>
-            <Box
-                maxWidth
-                sx={{
-                    minHeight: '100vh',
-                    zIndex: 0,
-                }}
-            >
-                <ShipBackground />
-            </Box>
-            <RouterProvider router={router} />{' '}
+            <ShipContextProvider>
+                <Box
+                    maxWidth
+                    sx={{
+                        minHeight: '100vh',
+                        zIndex: 0,
+                    }}
+                >
+                    <ShipBackground />
+                </Box>
+                <RouterProvider router={router} />
+            </ShipContextProvider>
         </div>
     )
 }
