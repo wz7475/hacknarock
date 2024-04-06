@@ -65,7 +65,7 @@ const Water = (props) => {
     const scale = 1
     const height = 0.1
 
-    const gridSize = 5
+    const gridSize = 7
 
     /*
     const state = useThree()
