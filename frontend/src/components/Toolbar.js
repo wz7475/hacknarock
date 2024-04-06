@@ -6,10 +6,13 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import IconButton from "@mui/material/IconButton";
-import { MenuItem } from "@mui/material";
+import { Avatar, MenuItem } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import Menu from "@mui/material/Menu";
+import { useNavigate } from "react-router";
 export function ToolBar(props) {
+  const naviagate = useNavigate();
+
   const [anchorElNav, setAnchorElNav] = useState(null);
 
   const handleOpenNavMenu = (event) => {
@@ -22,11 +25,11 @@ export function ToolBar(props) {
 
   const SUBPAGES = [
     {
-      name: "profile",
+      name: "Profile",
       path: "/path",
     },
     {
-      name: "friends",
+      name: "Friends",
       path: "/path",
     },
   ];
@@ -38,7 +41,7 @@ export function ToolBar(props) {
       <AppBar
         sx={{
           mb: 0,
-          opacity: 0.5,
+          opacity: 0.7,
           position: "static",
         }}
       >
@@ -83,6 +86,31 @@ export function ToolBar(props) {
               ))}
             </Menu>
           </Box>
+          <Box
+            component="img"
+            src="viking-helmet.png"
+            sx={{
+              ml: 5,
+              mr: 2,
+              height: "5vh",
+            }}
+          ></Box>
+          <Typography>VIKINGS PEACE</Typography>
+          {props.isLogged ? (
+            <Avatar
+              sx={{ ml: "auto" }}
+              alt="Remy Sharp"
+              src="/static/images/avatar/1.jpg"
+            />
+          ) : (
+            <Button
+              sx={{ ml: "auto", opacity: 1 }}
+              variant="contained"
+              onClick={() => naviagate("/sign-in")}
+            >
+              Sign in
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
     </div>

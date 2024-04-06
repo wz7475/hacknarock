@@ -41,7 +41,7 @@ export function Controls(props) {
       {screen === "BasePage" && (
         <Slide direction="down" in={screen === "BasePage"}>
           <Box>
-            <ToolBar />
+            <ToolBar isLogged={props.isLogged} />
           </Box>
         </Slide>
       )}

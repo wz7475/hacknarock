@@ -1,26 +1,44 @@
-import logo from "./logo.svg";
-import { ToolBar } from "./components/Toolbar";
-import { Background } from "./Backgrounnd";
-import { Box, Button } from "@mui/material";
-import { Controls } from "./Contorls";
-import { useState } from "react";
+import React, { useState } from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import Game from "./Game";
+import reportWebVitals from "./reportWebVitals";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Friends } from "./Friends";
+import { Box } from "@mui/material";
+import SignIn from "./SignIn";
+import SignInPage from "./SignInPage";
+import SignUpPage from "./SignUpPage";
 
-function App() {
-  return (
-    <div>
-      <Box
-        maxWidth
-        sx={{
-          bgcolor: "lightblue",
-          minHeight: "100vh",
-          zIndex: 0,
-        }}
-      />
-      <Box position="absolute" top="0px" height="100vh">
-        <Controls />
-      </Box>
-    </div>
-  );
+export default function App() {
+  const [isLogged, setIsLogged] = useState(false);
+
+  const router = createBrowserRouter([
+    // {
+    //   path: "/",
+    //   element: <App />,
+    // },
+    {
+      path: "/app",
+      element: <Game isLogged={isLogged} />,
+    },
+    //   {
+    //     path: "/profile",
+    //     element: <App isLogged={isLogged} />,
+    //   },
+    {
+      path: "/friends",
+      element: <Friends isLogged={isLogged} />,
+    },
+    {
+      path: "/sign-in",
+      element: <SignInPage isLogged={isLogged} />,
+    },
+    {
+      path: "/sign-up",
+      element: <SignUpPage isLogged={isLogged} />,
+    },
+  ]);
+
+  return <RouterProvider router={router} />;
 }
-
-export default App;
