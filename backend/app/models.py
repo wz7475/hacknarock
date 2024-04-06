@@ -8,7 +8,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     nick = Column(String, index=True)
     is_premium = Column(Boolean, default=False)
-    experience = Column(Integer)
+    experience = Column(Integer, default=0)
 
 class FollowedFriends(Base):
     __tablename__ = 'followed_friends'
