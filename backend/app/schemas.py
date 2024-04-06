@@ -57,3 +57,15 @@ class ScoreboardItem(BaseModel):
     
     class Config:
         orm_mode = True
+
+# For ships
+
+class ShipBase(BaseModel):
+    user_id: int
+    tier: int
+
+class Ship(ShipBase):
+    id: int
+
+    class Config:
+        orm_mode = True
