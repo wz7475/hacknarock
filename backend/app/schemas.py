@@ -2,18 +2,33 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+# For users
+
 class UserBase(BaseModel):
     nick: str
     is_premium: Optional[bool] = False
+    experience: Optional[int] = 0
 
-class UserCreate(UserBase):
-    experience: int
+class UserId(BaseModel):
+    user_id: int
 
 class User(UserBase):
     id: int
     class Config:
         orm_mode = True
 
+# For friends
+
+class FriendsBase(BaseModel):
+    following_user_id: int
+    followed_user_id: int
+
+class Friends(FriendsBase):
+    id: int
+    class Config:
+        orm_mode = True
+
+# For journey
 
 class Journey(BaseModel):
     user_id: int
