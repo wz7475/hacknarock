@@ -1,6 +1,5 @@
-import './App.css'
 import * as THREE from 'three'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import { OrbitControls, OrthographicCamera } from '@react-three/drei'
 import useMeasure from 'react-use-measure'
@@ -264,42 +263,43 @@ const BoatFleet = (props) => {
     )
 }
 
-function App() {
+function ShipBackground() {
     const [ref, bounds] = useMeasure()
 
     return (
-        <div className="App">
-            <Canvas
-                ref={ref}
-                shadows={true}
-            >
-                <ambientLight intensity={Math.PI / 3} />
-                <directionalLight
-                    intensity={1}
-                    position={[1, 0.5, 1]}
-                />
-                <directionalLight
-                    intensity={1}
-                    position={[-1, 2, 1]}
-                    castShadow={true}
-                />
+        <Canvas
+            style={{
+                height: '100vh',
+            }}
+            ref={ref}
+            shadows={true}
+        >
+            <ambientLight intensity={Math.PI / 3} />
+            <directionalLight
+                intensity={1}
+                position={[1, 0.5, 1]}
+            />
+            <directionalLight
+                intensity={1}
+                position={[-1, 2, 1]}
+                castShadow={true}
+            />
 
-                <Water instability={3} />
-                <Boat
-                    color="goldenrod"
-                    instability={3}
-                    position={[0, 0]}
-                />
+            <Water instability={3} />
+            <Boat
+                color="goldenrod"
+                instability={3}
+                position={[0, 0]}
+            />
 
-                <BoatFleet boats={[[5, 15]]} />
+            <BoatFleet boats={[[5, 15]]} />
 
-                <axesHelper args={[5]} />
+            <axesHelper args={[5]} />
 
-                <Camera bounds={bounds} />
-                <OrbitControls />
-            </Canvas>
-        </div>
+            <Camera bounds={bounds} />
+            <OrbitControls />
+        </Canvas>
     )
 }
 
-export default App
+export default ShipBackground
