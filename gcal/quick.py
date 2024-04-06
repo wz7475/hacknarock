@@ -59,9 +59,42 @@ def print_events(events):
         print(start, event["summary"])
 
 
+def create_event(service, event):
+    service.events().insert(calendarId='primary', body=event).execute()
+
+
+def get_dummy_event(year=2024, month=4, day=28):
+    if month < 10:
+        month = f"0{month}"
+    if day < 10:
+        day = f"0{day}"
+    event = {
+        'summary': 'event from backend',
+        'start': {
+            'dateTime': f'{year}-{month}-{day}T09:00:00-07:00',
+            'timeZone': 'America/Los_Angeles',
+        },
+        'end': {
+            'dateTime': f'{year}-{month}-{day}T17:00:00-07:00',
+            'timeZone': 'America/Los_Angeles',
+        },
+        'reminders': {
+            'useDefault': False,
+            'overrides': [
+                {'method': 'popup', 'minutes': 10},
+            ],
+        },
+    }
+    return event
+
+
 def main():
     creds = authorize()
     service = get_service(creds)
+
+    event = get_dummy_event(day=8)
+    create_event(service, event)
+
     events = get_events(service)
     print_events(events)
 
