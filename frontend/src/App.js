@@ -1,23 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import logo from "./logo.svg";
+import { ToolBar } from "./components/Toolbar";
+import { Background } from "./Backgrounnd";
+import { Box, Button } from "@mui/material";
+import { Controls } from "./Contorls";
+import { useState } from "react";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Box
+        maxWidth
+        sx={{
+          bgcolor: "lightblue",
+          minHeight: "100vh",
+          zIndex: 0,
+        }}
+      />
+      <Box position="absolute" top="0px" height="100vh">
+        <Controls />
+      </Box>
     </div>
   );
 }
