@@ -38,6 +38,8 @@ services:
       - postgres
     networks:
       - shared-network
+    env_file:
+      - .env
   
   frontend:
     build: ./frontend
