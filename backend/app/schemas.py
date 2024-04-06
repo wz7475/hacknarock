@@ -8,12 +8,14 @@ class UserBase(BaseModel):
     nick: str
     is_premium: Optional[bool] = False
     experience: Optional[int] = 0
+    
+class RegisterUser(UserBase):
+    password: str
 
 class UserId(BaseModel):
     user_id: int
 
 class UserExperience(BaseModel):
-    user_id: int
     experience: int
 
 class User(UserBase):
@@ -21,13 +23,17 @@ class User(UserBase):
     class Config:
         orm_mode = True
 
+class UserLogin(BaseModel):
+    nick: str
+    password: str
+
+
 # For friends
 
-class FriendsBase(BaseModel):
-    following_user_id: int
+class AddFriend(BaseModel):
     followed_user_id: int
 
-class Friends(FriendsBase):
+class Friends(AddFriend):
     id: int
     class Config:
         orm_mode = True
@@ -35,7 +41,6 @@ class Friends(FriendsBase):
 # For journey
 
 class Journey(BaseModel):
-    user_id: int
     duration: int
     start_date: datetime = datetime.now()
 
@@ -61,7 +66,6 @@ class ScoreboardItem(BaseModel):
 # For ships
 
 class ShipBase(BaseModel):
-    user_id: int
     tier: int
 
 class Ship(ShipBase):
@@ -69,3 +73,8 @@ class Ship(ShipBase):
 
     class Config:
         orm_mode = True
+
+# Tokens
+
+class Jwt(BaseModel):
+    jwt: str
