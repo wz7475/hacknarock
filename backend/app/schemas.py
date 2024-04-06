@@ -12,6 +12,10 @@ class UserBase(BaseModel):
 class UserId(BaseModel):
     user_id: int
 
+class UserExperience(BaseModel):
+    user_id: int
+    experience: int
+
 class User(UserBase):
     id: int
     class Config:
@@ -42,5 +46,14 @@ class JourneyResponseModel(BaseModel):
     duration: int
     start_date: datetime
 
+    class Config:
+        orm_mode = True
+
+# Score board
+
+class ScoreboardItem(BaseModel):
+    user_id: int
+    experience: int
+    
     class Config:
         orm_mode = True
