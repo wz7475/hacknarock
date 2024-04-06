@@ -64,14 +64,6 @@ export function Friends(props) {
   return (
     <div>
       <Box
-        maxWidth
-        sx={{
-          bgcolor: "lightblue",
-          minHeight: "100vh",
-          zIndex: 0,
-        }}
-      />
-      <Box
         position="absolute"
         top="0px"
         width="100%"

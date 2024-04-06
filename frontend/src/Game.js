@@ -8,14 +8,6 @@ import { useState } from "react";
 function Game(props) {
   return (
     <div>
-      <Box
-        maxWidth
-        sx={{
-          bgcolor: "lightblue",
-          minHeight: "100vh",
-          zIndex: 0,
-        }}
-      />
       <Box position="absolute" top="0px" height="100vh">
         <Controls isLogged={props.isLogged} />
       </Box>

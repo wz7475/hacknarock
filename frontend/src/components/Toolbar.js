@@ -11,7 +11,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Menu from "@mui/material/Menu";
 import { useNavigate } from "react-router";
 export function ToolBar(props) {
-  const naviagate = useNavigate();
+  const navigate = useNavigate();
 
   const [anchorElNav, setAnchorElNav] = useState(null);
 
@@ -26,11 +26,11 @@ export function ToolBar(props) {
   const SUBPAGES = [
     {
       name: "Profile",
-      path: "/path",
+      path: "/profile",
     },
     {
       name: "Friends",
-      path: "/path",
+      path: "/friends",
     },
   ];
 
@@ -75,11 +75,11 @@ export function ToolBar(props) {
               {SUBPAGES.map((data) => (
                 <MenuItem
                   key={data.name}
-                  // onClick={() => {
-                  //   // navigate("/historia");
-                  //   window.scrollTo(0, 0);
-                  //   handleCloseNavMenu();
-                  // }}
+                  onClick={() => {
+                    navigate(data.path);
+                    window.scrollTo(0, 0);
+                    handleCloseNavMenu();
+                  }}
                 >
                   <Typography textAlign="center">{data.name}</Typography>
                 </MenuItem>
@@ -94,19 +94,21 @@ export function ToolBar(props) {
               mr: 2,
               height: "5vh",
             }}
+            onClick={() => navigate("/app")}
           ></Box>
-          <Typography>VIKINGS PEACE</Typography>
+          <Typography>NORDIC PEACE</Typography>
           {props.isLogged ? (
             <Avatar
               sx={{ ml: "auto" }}
               alt="Remy Sharp"
               src="/static/images/avatar/1.jpg"
+              onClick={() => navigate("/profile")}
             />
           ) : (
             <Button
               sx={{ ml: "auto", opacity: 1 }}
               variant="contained"
-              onClick={() => naviagate("/sign-in")}
+              onClick={() => navigate("/sign-in")}
             >
               Sign in
             </Button>
