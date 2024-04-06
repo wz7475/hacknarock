@@ -14,4 +14,19 @@ class User(UserBase):
     class Config:
         orm_mode = True
 
-# Define similar schemas for other models...
+
+class Journey(BaseModel):
+    user_id: int
+    duration: int
+    # start_date: Optional[datetime] = datetime.now()
+    start_date: datetime = datetime.now()
+
+
+class JourneyResponseModel(BaseModel):
+    id: int
+    user_id: int
+    duration: int
+    start_date: datetime
+
+    class Config:
+        orm_mode = True
