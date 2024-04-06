@@ -18,7 +18,6 @@ class User(UserBase):
 class Journey(BaseModel):
     user_id: int
     duration: int
-    # start_date: Optional[datetime] = datetime.now()
     start_date: datetime = datetime.now()
 
 

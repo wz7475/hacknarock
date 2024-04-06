@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -16,6 +16,9 @@ def get_all_journeys(user_id: int, db: Session = Depends(get_db)):
 
 @journey_router.post("/journeys/", response_model=JourneyResponseModel)
 def create_journey(journey: JourneySchema, db: Session = Depends(get_db)):
+    user = db.query(JourneyModel).filter(JourneyModel.user_id == journey.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     db_journey = JourneyModel(user_id=journey.user_id, duration=journey.duration)
     db.add(db_journey)
     db.commit()
