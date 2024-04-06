@@ -2,9 +2,8 @@ version: '3.8'
 
 services:
   postgres:
-    name: hacknarock_postgres
     image: postgres:latest
-    container_name: my_postgres
+    container_name: hacknarock_postgres
     ports:
       - "5432:5432"
     environment:
@@ -18,7 +17,7 @@ services:
 
   api:
     build: ./backend
-    name: hacknarock_backend
+    container_name: hacknarock_backend
     ports:
       - "8080:80"
     command: bash -c "uvicorn app.main:app --host 0.0.0.0 --port 80"
@@ -31,7 +30,7 @@ services:
   
   frontend:
     build: ./frontend
-    name: hacknarock_frontend
+    container_name: hacknarock_frontend
     ports:
       - "8090:80"
 
