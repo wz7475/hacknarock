@@ -21,6 +21,7 @@ services:
     ports:
       - "8080:80"
     command: bash -c "uvicorn app.main:app --host 0.0.0.0 --port 80"
+    working_dir: /code
     volumes:
       - ./backend/app:/code/app
     depends_on:
