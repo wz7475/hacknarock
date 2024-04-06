@@ -1,10 +1,11 @@
 import { Box, Button, Fab, Grow, Slide, Typography } from '@mui/material'
 import { ToolBar } from './components/Toolbar'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft'
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
 import Picker from 'react-mobile-picker'
+import { ShipContext } from './ShipContext'
 
 const selections = {
     minutes: Array.from(Array(120).keys()),
@@ -12,6 +13,7 @@ const selections = {
 }
 
 export function Controls(props) {
+    const shipContext = useContext(ShipContext)
     useEffect(() => {
         const interval = setInterval(
             () =>
@@ -25,11 +27,11 @@ export function Controls(props) {
                 }),
             1000
         )
+        shipContext.setType('main')
 
         return () => clearInterval(interval)
     }, [])
 
-    const [screen, setScreen] = useState('BasePage')
     const [pickerValue, setPickerValue] = useState({
         minutes: 0,
         seconds: 0,
@@ -42,32 +44,32 @@ export function Controls(props) {
             flexDirection="column"
             height="100%"
         >
-            {screen === 'BasePage' && (
+            {shipContext.type === 'main' && (
                 <Slide
                     direction="down"
-                    in={screen === 'BasePage'}
+                    in={shipContext.type === 'main'}
                 >
                     <Box>
                         <ToolBar isLogged={props.isLogged} />
                     </Box>
                 </Slide>
             )}
-            {screen === 'StartPage' && (
+            {shipContext.type === 'port' && (
                 <Slide
                     direction="down"
-                    in={screen === 'StartPage'}
+                    in={shipContext.type === 'port'}
                 >
                     <Fab
                         size="small"
                         color="primary"
-                        onClick={() => setScreen('BasePage')}
+                        onClick={() => shipContext.setType('main')}
                         sx={{ ml: 5, mt: 5 }}
                     >
                         <ArrowUpwardIcon fontSize="small" />
                     </Fab>
                 </Slide>
             )}
-            {screen === 'StartPage' && (
+            {shipContext.type === 'port' && (
                 <Box
                     sx={{ width: '32%', ml: 'auto', mr: 'auto', p: 1, mt: 2 }}
                     bgcolor="white"
@@ -111,8 +113,8 @@ export function Controls(props) {
                     </Picker>
                 </Box>
             )}
-            {screen === 'CruisePage' && (
-                <Grow in={screen === 'CruisePage'}>
+            {shipContext.type === 'ocean' && (
+                <Grow in={shipContext.type === 'ocean'}>
                     <Typography
                         sx={{ mt: 10, ml: 'auto', mr: 'auto' }}
                         variant="h1"
@@ -124,8 +126,8 @@ export function Controls(props) {
                     </Typography>
                 </Grow>
             )}
-            {screen === 'FailurePage' && (
-                <Grow in={screen === 'FailurePage'}>
+            {shipContext.type === 'failure' && (
+                <Grow in={shipContext.type === 'failure'}>
                     <Box sx={{ mt: 5, ml: 'auto', mr: 'auto' }}>
                         <Typography
                             variant="h4"
@@ -151,15 +153,15 @@ export function Controls(props) {
                     alignItems: 'center',
                 }}
             >
-                {screen === 'StartPage' && (
+                {shipContext.type === 'port' && (
                     <Slide
                         direction="right"
-                        in={screen === 'StartPage'}
+                        in={shipContext.type === 'port'}
                     >
                         <Fab
                             color="primary"
                             size="small"
-                            // onClick={() => setScreen("BasePage")}
+                            // onClick={() => setshipContext.type("main")}
                             sx={{ ml: 5 }}
                         >
                             <KeyboardArrowLeftIcon />
@@ -167,10 +169,10 @@ export function Controls(props) {
                     </Slide>
                 )}
 
-                {screen === 'StartPage' && (
+                {shipContext.type === 'port' && (
                     <Slide
                         direction="left"
-                        in={screen === 'StartPage'}
+                        in={shipContext.type === 'port'}
                     >
                         <Fab
                             color="primary"
@@ -183,8 +185,8 @@ export function Controls(props) {
                     </Slide>
                 )}
             </div>
-            {screen === 'BasePage' && (
-                <Grow in={screen === 'BasePage'}>
+            {shipContext.type === 'main' && (
+                <Grow in={shipContext.type === 'main'}>
                     <Button
                         variant="contained"
                         sx={{
@@ -192,14 +194,14 @@ export function Controls(props) {
                             mx: 20,
                             mb: 5,
                         }}
-                        onClick={() => setScreen('StartPage')}
+                        onClick={() => shipContext.setType('port')}
                     >
                         START
                     </Button>
                 </Grow>
             )}
-            {screen === 'StartPage' && (
-                <Grow in={screen === 'StartPage'}>
+            {shipContext.type === 'port' && (
+                <Grow in={shipContext.type === 'port'}>
                     <Button
                         variant="contained"
                         sx={{
@@ -208,7 +210,7 @@ export function Controls(props) {
                             mb: 5,
                         }}
                         onClick={() => {
-                            setScreen('CruisePage')
+                            shipContext.setType('ocean')
                             setTimeLeft(
                                 pickerValue.minutes * 60 + pickerValue.seconds
                             )
@@ -218,8 +220,8 @@ export function Controls(props) {
                     </Button>
                 </Grow>
             )}
-            {screen === 'CruisePage' && (
-                <Grow in={screen === 'CruisePage'}>
+            {shipContext.type === 'ocean' && (
+                <Grow in={shipContext.type === 'ocean'}>
                     <Button
                         variant="contained"
                         sx={{
@@ -227,14 +229,14 @@ export function Controls(props) {
                             mx: 20,
                             mb: 5,
                         }}
-                        onClick={() => setScreen('FailurePage')}
+                        onClick={() => shipContext.setType('failure')}
                     >
                         SINK 💀
                     </Button>
                 </Grow>
             )}
-            {screen === 'FailurePage' && (
-                <Grow in={screen === 'FailurePage'}>
+            {shipContext.type === 'failure' && (
+                <Grow in={shipContext.type === 'failure'}>
                     <Button
                         variant="contained"
                         sx={{
@@ -242,7 +244,7 @@ export function Controls(props) {
                             mx: 20,
                             mb: 5,
                         }}
-                        onClick={() => setScreen('BasePage')}
+                        onClick={() => shipContext.setType('main')}
                     >
                         BACK TO MAIN MENU
                     </Button>
