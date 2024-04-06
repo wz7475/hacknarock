@@ -6,7 +6,8 @@ import datetime
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, index=True)
-    nick = Column(String, index=True)
+    nick = Column(String, index=True, unique=True)
+    hash_password = Column(String)
     is_premium = Column(Boolean, default=False)
     experience = Column(Integer, default=0)
 
