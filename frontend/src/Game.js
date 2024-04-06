@@ -3,7 +3,8 @@ import { ToolBar } from './components/Toolbar'
 import { Background } from './Backgrounnd'
 import { Box, Button } from '@mui/material'
 import { Controls } from './Contorls'
-import { useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { ShipContext } from './ShipContext'
 
 function Game(props) {
     return (
