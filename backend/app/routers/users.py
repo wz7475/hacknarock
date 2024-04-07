@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Header, Depends, Body
+from fastapi import APIRouter, HTTPException, Response, Cookie, Depends, Body
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -37,7 +37,7 @@ def create_access_token(data: dict, expires_delta):
 
 
 @user_router.post("/register")
-def register(user: schemas.RegisterUser, db: Session = Depends(get_db)) -> schemas.Jwt:
+def register(user: schemas.RegisterUser, response: Response, db: Session = Depends(get_db)) -> schemas.Jwt:
     hashed_password = pwd_context.hash(user.password, salt="a"*21 + "e")
     
     nick_exists = db.query(models.User).filter(models.User.nick == user.nick).first()
@@ -53,10 +53,11 @@ def register(user: schemas.RegisterUser, db: Session = Depends(get_db)) -> schem
     access_token = create_access_token(
         data={"user_nick": db_user.nick, "user_id": db_user.id}, expires_delta=access_token_expires
     )
+    response.set_cookie(key='jwt_cookie', value=access_token)
     return schemas.Jwt(jwt=access_token)
 
 @user_router.post("/login")
-def login_for_access_token(data: schemas.UserLogin, db: Session = Depends(get_db)) -> schemas.Jwt:
+def login_for_access_token(data: schemas.UserLogin, response: Response, db: Session = Depends(get_db)) -> schemas.Jwt:
     try:
         user = authenticate_user(data.nick, data.password, db)
     except HTTPException:
@@ -65,19 +66,20 @@ def login_for_access_token(data: schemas.UserLogin, db: Session = Depends(get_db
     access_token = create_access_token(
         data={"user_nick": user.nick, "user_id": user.id}, expires_delta=access_token_expires
     )
+    response.set_cookie(key='jwt_cookie', value=access_token)
     return schemas.Jwt(jwt=access_token)
 
 
 @user_router.get("/user", response_model=schemas.User)
-def read_user(authorization: str = Header(), db: Session = Depends(get_db)):
-    decoded_jwt = jwt.decode(authorization, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
+def read_user(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
+    decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
 @user_router.post("/grant_experience")
-def grant_experience(experience: schemas.UserExperience, authorization: str = Header(), db: Session = Depends(get_db)):
-    decoded_jwt = jwt.decode(authorization, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
+def grant_experience(experience: schemas.UserExperience, jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
+    decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
     user = db.query(models.User).filter(models.User.id == user_id).first()
     
@@ -95,8 +97,8 @@ def read_users(db: Session = Depends(get_db)):
 
 
 @user_router.post("/buy_premium")
-def buy_premium(authorization: str = Header(), db: Session = Depends(get_db)):
-    decoded_jwt = jwt.decode(authorization, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
+def buy_premium(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
+    decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
     found_user = db.query(models.User).filter(models.User.id == user_id).first()
     if found_user.is_premium:
@@ -107,8 +109,8 @@ def buy_premium(authorization: str = Header(), db: Session = Depends(get_db)):
 
 
 @user_router.post("/follow_user", response_model=schemas.Friends)
-def follow_user(user_to_be_followed: schemas.AddFriend, authorization: str = Header(), db: Session = Depends(get_db)):
-    decoded_jwt = jwt.decode(authorization, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
+def follow_user(user_to_be_followed: schemas.AddFriend, jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
+    decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
     
     if user_id == user_to_be_followed.followed_user_id:
@@ -134,8 +136,8 @@ def follow_user(user_to_be_followed: schemas.AddFriend, authorization: str = Hea
 
 
 @user_router.get("/list_followed", response_model=list[schemas.User])
-def list_followed_users(authorization: str = Header(), db: Session = Depends(get_db)):
-    decoded_jwt = jwt.decode(authorization, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
+def list_followed_users(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
+    decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
     followed = db.query(models.FollowedFriends).filter(models.FollowedFriends.following_user_id == user_id).all()
     ids_of_followed_users = set([follower.followed_user_id for follower in followed])    
@@ -143,8 +145,8 @@ def list_followed_users(authorization: str = Header(), db: Session = Depends(get
 
 
 @user_router.get("/list_following", response_model=list[schemas.User])
-def list_following_users(authorization: str = Header(), db: Session = Depends(get_db)):
-    decoded_jwt = jwt.decode(authorization, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
+def list_following_users(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
+    decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
     followers = db.query(models.FollowedFriends).filter(models.FollowedFriends.followed_user_id == user_id).all()
     ids_of_followers = set([follower.following_user_id for follower in followers])

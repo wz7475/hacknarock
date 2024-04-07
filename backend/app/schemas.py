@@ -42,14 +42,20 @@ class Friends(AddFriend):
 
 class Journey(BaseModel):
     duration: int
+    ship_id: int
     start_date: datetime = datetime.now()
 
+class EndJourney(BaseModel):
+    id: int
+    end_type: int
 
 class JourneyResponseModel(BaseModel):
     id: int
     user_id: int
+    ship_id: int
     duration: int
     start_date: datetime
+    end_type: int = 0
 
     class Config:
         orm_mode = True
