@@ -11,14 +11,14 @@ from jose import jwt
 journey_router = APIRouter()
 
 
-@journey_router.get("/journeys/{user_id}")
+@journey_router.get("/journeys")
 def get_all_journeys(authorization: str = Header(), db: Session = Depends(get_db)):
     decoded_jwt = jwt.decode(authorization, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
     return db.query(JourneyModel).filter(JourneyModel.user_id == user_id).all()
 
 
-@journey_router.post("/journeys/", response_model=JourneyResponseModel)
+@journey_router.post("/journeys", response_model=JourneyResponseModel)
 def create_journey(journey: JourneySchema, authorization: str = Header(), db: Session = Depends(get_db)):
     decoded_jwt = jwt.decode(authorization, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
