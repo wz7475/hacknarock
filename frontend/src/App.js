@@ -1,9 +1,14 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 import Game from './Game'
 import reportWebVitals from './reportWebVitals'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import {
+    createBrowserRouter,
+    Navigate,
+    RouterProvider,
+    useNavigate,
+} from 'react-router-dom'
 import { Friends } from './Friends'
 import { Box } from '@mui/material'
 import Profile from './Profile'
@@ -11,10 +16,25 @@ import SignInPage from './SignInPage'
 import SignUpPage from './SignUpPage'
 import ShipBackground from './Ships'
 import { ShipContextProvider } from './ShipContext'
+import { verifyUser } from './api/verifyUser'
+import Cookie from 'js-cookie'
 
 export default function App() {
-    const [token, setToken] = useState(null)
+    useEffect(() => {
+        const fetchData = async () => {
+            const userData = await verifyUser()
+            if (userData.hasOwnProperty('nick')) {
+                setToken('pla')
+            } else {
+                Cookie.remove('jwt_cookie', { path: '/' })
+            }
+            setisLoading(false)
+        }
+        fetchData()
+    }, [])
 
+    const [token, setToken] = useState(null)
+    const [isLoading, setisLoading] = useState(true)
     const router = createBrowserRouter([
         // {
         //   path: "/",
@@ -22,11 +42,24 @@ export default function App() {
         // },
         {
             path: '/app',
-            element: <Game isLogged={token !== null} />,
+            element: (
+                <Game
+                    token={token}
+                    isLogged={token !== null}
+                />
+            ),
         },
         {
             path: '/profile',
-            element: <Profile isLogged={token !== null} />,
+            element: (
+                <Profile
+                    isLogged={token !== null}
+                    logOut={() => {
+                        Cookie.remove('jwt_cookie', { path: '/' })
+                        setToken(null)
+                    }}
+                />
+            ),
         },
         {
             path: '/friends',
@@ -48,19 +81,23 @@ export default function App() {
     ])
 
     return (
-        <div>
-            <ShipContextProvider>
-                <Box
-                    maxWidth
-                    sx={{
-                        minHeight: '100vh',
-                        zIndex: 0,
-                    }}
-                >
-                    <ShipBackground />
-                </Box>
-                <RouterProvider router={router} />
-            </ShipContextProvider>
-        </div>
+        <>
+            {!isLoading && (
+                <div>
+                    <ShipContextProvider>
+                        <Box
+                            maxWidth
+                            sx={{
+                                minHeight: '100vh',
+                                zIndex: 0,
+                            }}
+                        >
+                            <ShipBackground />
+                        </Box>
+                        <RouterProvider router={router} />
+                    </ShipContextProvider>
+                </div>
+            )}
+        </>
     )
 }

@@ -7,7 +7,6 @@ export const createUser = async (username, password) => {
         is_premium: false,
         experience: 0,
     })
-    console.log(body)
 
     return await fetch(`${SERVER_ADRESS}/users/register `, {
         method: 'POST',

@@ -4,11 +4,14 @@ import { Background } from './Backgrounnd'
 import { Box, Button, Typography } from '@mui/material'
 import { useEffect, useContext } from 'react'
 import { ShipContext } from './ShipContext'
+import { useNavigate } from 'react-router'
 
 function Profile(props) {
     const shipContext = useContext(ShipContext)
+    const navigate = useNavigate()
 
     useEffect(() => {
+        if (!props.isLogged) navigate('/')
         shipContext.setType('empty')
     }, [])
 
@@ -37,6 +40,12 @@ function Profile(props) {
                         Here will be displayed data about profile
                     </Typography>
                     <Button sx={{ mt: 3 }}>Connect with Google Calendar</Button>
+                    <Button
+                        sx={{ ml: 5, mt: 3 }}
+                        onClick={props.logOut}
+                    >
+                        Logout
+                    </Button>
                 </Box>
             </Box>
         </div>

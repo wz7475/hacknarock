@@ -1,11 +1,12 @@
 import { Box, Button, Fab, Grow, Slide, Typography } from '@mui/material'
 import { ToolBar } from './components/Toolbar'
-import { useContext, useEffect, useState } from 'react'
+import { createRef, useContext, useEffect, useRef, useState } from 'react'
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft'
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
 import Picker from 'react-mobile-picker'
 import { ShipContext } from './ShipContext'
+import { startJourney } from './api/startJourney'
 
 const selections = {
     minutes: Array.from(Array(120).keys()),
@@ -15,6 +16,7 @@ const selections = {
 export function Controls(props) {
     const shipContext = useContext(ShipContext)
     const [lastLeftTime, setLastLeftTime] = useState(null)
+    const intervalTimer = useRef(null)
 
     useEffect(() => {
         const interval = setInterval(
@@ -35,18 +37,31 @@ export function Controls(props) {
     }, [])
 
     window.onblur = function () {
-        setLastLeftTime(Date.now())
+        clearInterval(intervalTimer.current)
+        intervalTimer.current = null
+        if (shipContext.type === 'ocean') setLastLeftTime(Date.now())
     }
 
     window.onfocus = function () {
-        const timeOutsideApp = Date.now() - lastLeftTime
-        shipContext.setParams((oldParams) => ({
-            ...oldParams,
-            instability: Math.min(
-                oldParams.instability + timeOutsideApp / 10000,
-                10
-            ),
-        }))
+        if (shipContext.type === 'ocean') {
+            const timeOutsideApp = Date.now() - lastLeftTime
+            shipContext.setParams((oldParams) => ({
+                ...oldParams,
+                instability: Math.min(
+                    oldParams.instability + timeOutsideApp / 10000,
+                    10
+                ),
+            }))
+        }
+
+        intervalTimer.current = setInterval(
+            () =>
+                shipContext.setParams((prevParams) => ({
+                    ...prevParams,
+                    instability: Math.max(prevParams.instability - 0.5, 3),
+                })),
+            1000
+        )
     }
 
     const [pickerValue, setPickerValue] = useState({
@@ -228,6 +243,10 @@ export function Controls(props) {
                         }}
                         onClick={() => {
                             shipContext.setType('ocean')
+                            startJourney(
+                                pickerValue.minutes * 60 + pickerValue.seconds,
+                                props.token
+                            )
                             setTimeLeft(
                                 pickerValue.minutes * 60 + pickerValue.seconds
                             )

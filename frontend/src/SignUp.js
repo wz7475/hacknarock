@@ -14,18 +14,32 @@ import Container from '@mui/material/Container'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { createUser } from './api/createUser'
 import { useNavigate } from 'react-router'
+import { useState } from 'react'
 
 // TODO remove, this demo shouldn't need to reset the theme.
 
 export default function SignUp(props) {
     const navigate = useNavigate()
+    const [emptyInput, setEmptyInput] = useState(false)
+    const [duplicatedUsername, setDuplicatedUsername] = useState(false)
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault()
         const data = new FormData(event.currentTarget)
-        const userData = createUser(data.get('username'), data.get('password'))
-        if (userData !== null) {
+        if (
+            data.get('username').length === 0 ||
+            data.get('password').length === 0
+        )
+            setEmptyInput(true)
+        const userData = await createUser(
+            data.get('username'),
+            data.get('password')
+        )
+        console.log(userData)
+        if (userData.hasOwnProperty('jwt')) {
             navigate('/profile')
+        } else {
+            setDuplicatedUsername(true)
         }
     }
 
@@ -51,6 +65,16 @@ export default function SignUp(props) {
                 >
                     Sign up
                 </Typography>
+                {emptyInput && (
+                    <Typography sx={{ color: 'red' }}>
+                        Username and password cannot be empty
+                    </Typography>
+                )}
+                {duplicatedUsername && (
+                    <Typography sx={{ color: 'red' }}>
+                        Username already exist
+                    </Typography>
+                )}
                 <Box
                     component="form"
                     noValidate

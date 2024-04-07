@@ -11,10 +11,13 @@ import { ToolBar } from './components/Toolbar'
 import { DataGrid } from '@mui/x-data-grid'
 import { useEffect, useContext, useState } from 'react'
 import { ShipContext } from './ShipContext'
+import { useNavigate } from 'react-router'
+import { getFollowed } from './api/loadFriends'
+import { addFriend } from './api/addFriend'
 
 const columns = [
     {
-        field: 'name',
+        field: 'nick',
         headerName: 'Name',
         width: 150,
         editable: false,
@@ -39,30 +42,35 @@ const columns = [
     },
 ]
 
-const friendList = [
-    {
-        id: 1,
-        name: 'janek232',
-        experience: 1231,
-    },
-    {
-        id: 2,
-        name: 'malogosia2007',
-        experience: 453,
-    },
-    {
-        id: 3,
-        name: 'o1122lek',
-        experience: 654,
-    },
-]
-
 export function Friends(props) {
     const shipContext = useContext(ShipContext)
+    const navigate = useNavigate()
+
+    const handleSubmit = async (event) => {
+        event.preventDefault()
+        const friend = new FormData(event.currentTarget)
+        console.log(friend)
+        const addedFriend = await addFriend(friend.get('username'))
+        if (addedFriend.hasOwnProperty('followed_user_id')) {
+            setIsAddingFriend(false)
+        } else {
+            setIsUserNotFound(true)
+        }
+    }
 
     useEffect(() => {
+        const fetchData = async () => {
+            const userFriends = await getFollowed()
+            if (userFriends.length > 0) {
+                setFriendList(userFriends)
+            }
+        }
+        fetchData()
+        if (!props.isLogged) navigate('/')
         shipContext.setType('empty')
     }, [])
+
+    const [friendList, setFriendList] = useState([])
     const [isAddingFriend, setIsAddingFriend] = useState(false)
     const [isUserNotFound, setIsUserNotFound] = useState(false)
     const [isUserAddedSuccessfully, setIsUserAddedSuccessfully] =
@@ -133,8 +141,15 @@ export function Friends(props) {
                             display: 'flex',
                             flexDirection: 'column',
                         }}
+                        component="form"
+                        onSubmit={handleSubmit}
                     >
-                        <TextField></TextField>
+                        <TextField
+                            id="username"
+                            name="username"
+                            required
+                            autoComplete="username"
+                        ></TextField>
                         <Box
                             marginTop={2}
                             flexDirection="row"
@@ -142,15 +157,7 @@ export function Friends(props) {
                             justifyItems="center"
                             justifyContent="center"
                         >
-                            <Button
-                                onClick={() => {
-                                    if (Math.random() > 0.5)
-                                        setIsUserNotFound(true)
-                                    else setIsAddingFriend(false)
-                                }}
-                            >
-                                Add Friend
-                            </Button>
+                            <Button type="submit">Add Friend</Button>
                             <Button
                                 onClick={() => {
                                     setIsUserNotFound(false)
@@ -161,7 +168,9 @@ export function Friends(props) {
                             </Button>
                         </Box>
                         {isUserNotFound && (
-                            <Typography>User not found</Typography>
+                            <Typography>
+                                User not found or already on friend list
+                            </Typography>
                         )}
                     </Box>
                 </Grow>

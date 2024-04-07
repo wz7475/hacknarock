@@ -17,16 +17,22 @@ import { useNavigate } from 'react-router'
 
 export default function SignIn(props) {
     const navigate = useNavigate()
+    const [wrongLogin, setWrongLogin] = React.useState(false)
+
+    React.useEffect(() => {
+        if (props.isLogged) navigate('/profile')
+    }, [])
 
     const handleSubmit = async (event) => {
         event.preventDefault()
         const data = new FormData(event.currentTarget)
         const userData = await login(data.get('username'), data.get('password'))
-        if (userData !== null) {
+        if (userData.hasOwnProperty('jwt')) {
             console.log(userData)
             props.setToken(userData.jwt)
-            document.cookie = `token=${userData.jwt}`
             navigate('/profile')
+        } else {
+            setWrongLogin(true)
         }
     }
 
@@ -52,6 +58,11 @@ export default function SignIn(props) {
                 >
                     Sign in
                 </Typography>
+                {wrongLogin && (
+                    <Typography color={'red'}>
+                        Wrong username or password
+                    </Typography>
+                )}
                 <Box
                     component="form"
                     onSubmit={handleSubmit}
