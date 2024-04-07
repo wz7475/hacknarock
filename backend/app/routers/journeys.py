@@ -54,7 +54,7 @@ def end_journey(end_journey: schemas.EndJourney, jwt_cookie: str = Cookie(), db:
     decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     if end_journey.end_type not in range(3):
         raise HTTPException(status_code=400, detail="Journey end-type has to be in range 0 and 2")
-    journey = db.query(models.Journey).filter(models.Journey.id == end_journey.id and models.Journey.user_id == decoded_jwt.get('user_id')).first()
+    journey = db.query(models.Journey).filter(models.Journey.id == end_journey.id, models.Journey.user_id == decoded_jwt.get('user_id')).first()
     journey.end_type = end_journey.end_type
     
     user = db.query(models.User).filter(models.User.id == journey.user_id).first()
