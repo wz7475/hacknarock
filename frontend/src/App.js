@@ -13,7 +13,7 @@ import ShipBackground from './Ships'
 import { ShipContextProvider } from './ShipContext'
 
 export default function App() {
-    const [isLogged, setIsLogged] = useState(true)
+    const [token, setToken] = useState(null)
 
     const router = createBrowserRouter([
         // {
@@ -22,23 +22,28 @@ export default function App() {
         // },
         {
             path: '/app',
-            element: <Game isLogged={isLogged} />,
+            element: <Game isLogged={token !== null} />,
         },
         {
             path: '/profile',
-            element: <Profile isLogged={isLogged} />,
+            element: <Profile isLogged={token !== null} />,
         },
         {
             path: '/friends',
-            element: <Friends isLogged={isLogged} />,
+            element: <Friends isLogged={token !== null} />,
         },
         {
             path: '/sign-in',
-            element: <SignInPage isLogged={isLogged} />,
+            element: (
+                <SignInPage
+                    isLogged={token !== null}
+                    setToken={setToken}
+                />
+            ),
         },
         {
             path: '/sign-up',
-            element: <SignUpPage isLogged={isLogged} />,
+            element: <SignUpPage isLogged={token !== null} />,
         },
     ])
 

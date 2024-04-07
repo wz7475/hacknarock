@@ -12,15 +12,22 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { login } from './api/login'
+import { useNavigate } from 'react-router'
 
-export default function SignIn() {
-    const handleSubmit = (event) => {
+export default function SignIn(props) {
+    const navigate = useNavigate()
+
+    const handleSubmit = async (event) => {
         event.preventDefault()
         const data = new FormData(event.currentTarget)
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        })
+        const userData = await login(data.get('username'), data.get('password'))
+        if (userData !== null) {
+            console.log(userData)
+            props.setToken(userData.jwt)
+            document.cookie = `token=${userData.jwt}`
+            navigate('/profile')
+        }
     }
 
     return (
@@ -55,10 +62,10 @@ export default function SignIn() {
                         margin="normal"
                         required
                         fullWidth
-                        id="email"
-                        label="Email Address"
-                        name="email"
-                        autoComplete="email"
+                        id="username"
+                        label="Username"
+                        name="username"
+                        autoComplete="username"
                         autoFocus
                     />
                     <TextField
