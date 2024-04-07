@@ -11,9 +11,23 @@ import SignInPage from './SignInPage'
 import SignUpPage from './SignUpPage'
 import ShipBackground from './Ships'
 import { ShipContextProvider } from './ShipContext'
+import { amber } from '@mui/material/colors'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
 
 export default function App() {
     const [token, setToken] = useState(null)
+
+    const theme = createTheme({
+        palette: {
+            mode: 'light',
+            primary: {
+                main: amber[700],
+            },
+            secondary: {
+                main: '#f50057',
+            },
+        },
+    })
 
     const router = createBrowserRouter([
         // {
@@ -49,18 +63,20 @@ export default function App() {
 
     return (
         <div>
-            <ShipContextProvider>
-                <Box
-                    maxWidth
-                    sx={{
-                        minHeight: '100vh',
-                        zIndex: 0,
-                    }}
-                >
-                    <ShipBackground />
-                </Box>
-                <RouterProvider router={router} />
-            </ShipContextProvider>
+            <ThemeProvider theme={theme}>
+                <ShipContextProvider>
+                    <Box
+                        maxWidth
+                        sx={{
+                            minHeight: '100vh',
+                            zIndex: 0,
+                        }}
+                    >
+                        <ShipBackground />
+                    </Box>
+                    <RouterProvider router={router} />
+                </ShipContextProvider>
+            </ThemeProvider>
         </div>
     )
 }
