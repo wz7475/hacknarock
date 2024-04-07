@@ -7,6 +7,7 @@ import app.schemas as schemas
 from app.cfg import SECRET_KEY, HASHING_ALGORITHM
 from jose import jwt
 import datetime
+from app.routers.ships import add_ship_to_user
 
 journey_router = APIRouter(prefix="/journeys")
 
@@ -31,9 +32,9 @@ def create_journey(journey: schemas.Journey, jwt_cookie: str = Cookie(), db: Ses
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    ship = db.query(models.Ships).filter(models.Ships.id == journey.ship_id).first()
-    if not ship:
-        raise HTTPException(status_code=404, detail="Ship not found")
+    
+    ship = add_ship_to_user(schemas.ShipBase(tier=journey.ship_tier), jwt_cookie, db)
+    
     if journey.duration < 0:
         raise HTTPException(status_code=400, detail="Duration cannot be negative")
     
@@ -42,7 +43,7 @@ def create_journey(journey: schemas.Journey, jwt_cookie: str = Cookie(), db: Ses
     else:
         experience = journey.duration
     
-    db_journey = models.Journey(user_id=user_id, ship_id=journey.ship_id, duration=journey.duration, start_date=journey.start_date, experience_to_get=experience)
+    db_journey = models.Journey(user_id=user_id, ship_id=ship.id, duration=journey.duration, start_date=journey.start_date, experience_to_get=experience)
     db.add(db_journey)
     db.commit()
     db.refresh(db_journey)
