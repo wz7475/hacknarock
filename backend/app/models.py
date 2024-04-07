@@ -31,6 +31,7 @@ class Journey(Base):
     duration = Column(Integer)
     start_date = Column(DateTime, default=datetime.datetime.utcnow)
     end_type = Column(Integer, default=0)
+    experience_to_get = Column(Integer)
 
 class Session(Base):
     __tablename__ = 'sessions'

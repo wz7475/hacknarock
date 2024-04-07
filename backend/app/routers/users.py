@@ -74,8 +74,10 @@ def login_for_access_token(data: schemas.UserLogin, response: Response, db: Sess
 def read_user(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
     decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
-    return db.query(models.User).filter(models.User.id == user_id).first()
-
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=400, detail="JWT expired")
+    return user
 
 @user_router.post("/grant_experience")
 def grant_experience(experience: schemas.UserExperience, jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
@@ -108,27 +110,34 @@ def buy_premium(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
     return JSONResponse(content={"message": f"User with id: {user_id} is now premium"})
 
 
+def get_user_id_by_nick(user_nick: str, db):
+    user = db.query(models.User).filter(models.User.nick == user_nick).first()
+    print(f"tofollow: {user.id}")
+    return user.id
+
 @user_router.post("/follow_user", response_model=schemas.Friends)
 def follow_user(user_to_be_followed: schemas.AddFriend, jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
     decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
+    print(f"user_id: {user_id}")
+    user_self = db.query(models.User).filter(models.User.id == user_id).first()
     
-    if user_id == user_to_be_followed.followed_user_id:
+    if user_self.nick == user_to_be_followed.followed_user_nick:
         raise HTTPException(status_code=400, detail="Cannot follow self")
 
-    check_if_followed_exists = db.query(models.User).filter(models.User.id == user_to_be_followed.followed_user_id).first()
-    if check_if_followed_exists is None:
+    check_if_followed_exists = db.query(models.User).filter(models.User.nick == user_to_be_followed.followed_user_nick).first()
+    # print(f"user_to_follow: {check_if_followed_exists is None}")
+    if not check_if_followed_exists:
         raise HTTPException(status_code=400, detail="User you are trying to follow doesn't exist")
     
-    followed_already = db.query(models.FollowedFriends).filter(models.FollowedFriends.followed_user_id == user_to_be_followed.followed_user_id and models.FollowedFriends.following_user_id == user_id).first()
+    followed_id = get_user_id_by_nick(user_to_be_followed.followed_user_nick, db)
     
-    if followed_already is not None:
-        raise HTTPException(status_code=400, detail="You are already following this user")
-    
+    followed_already = db.query(models.FollowedFriends).filter(models.FollowedFriends.followed_user_id == followed_id, models.FollowedFriends.following_user_id == user_id).first()
+    print(f"followed_already: {followed_already is not None}")
     if followed_already:
-        return followed_already
-    
-    friends = models.FollowedFriends(following_user_id=user_id, followed_user_id=user_to_be_followed.followed_user_id)
+        raise HTTPException(status_code=400, detail="You are already following this user")
+
+    friends = models.FollowedFriends(following_user_id=user_id, followed_user_id=followed_id)
     db.add(friends)
     db.commit()
     db.refresh(friends)
