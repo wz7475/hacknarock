@@ -37,7 +37,7 @@ def get_ships_for_user(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)
     return db.query(models.Ships).filter(models.Ships.user_id == user_id).all()
 
 
-@ship_router.get('/get_other_users_ships', response_model=list[schemas.Ship])
+@ship_router.post('/get_other_users_ships', response_model=list[schemas.Ship])
 def get_ships_by_user_id(other_user: schemas.UserId, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == other_user.user_id).first()
     if not user:
