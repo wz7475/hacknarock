@@ -31,7 +31,7 @@ def add_ship_to_user(data: schemas.ShipBase, jwt_cookie: str = Cookie(), db: Ses
 
 
 @ship_router.get('/get_self_ships', response_model=list[schemas.Ship])
-def get_ships_by_user_id(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
+def get_ships_for_user(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
     decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
     return db.query(models.Ships).filter(models.Ships.user_id == user_id).all()
