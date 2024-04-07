@@ -18,8 +18,9 @@ export function MainPage(props) {
                 />
                 <Typography
                     alignItems="center"
+                    textAlign="center"
                     sx={{ mx: 'auto', mt: 10 }}
-                    variant="h1"
+                    variant="h3"
                 >
                     Start your journey to peace with us
                 </Typography>
