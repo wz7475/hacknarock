@@ -44,7 +44,7 @@ class Friends(BaseModel):
 
 class Journey(BaseModel):
     duration: int
-    ship_id: int
+    ship_tier: int
     start_date: datetime = datetime.now()
 
 class EndJourney(BaseModel):
@@ -54,7 +54,7 @@ class EndJourney(BaseModel):
 class JourneyResponseModel(BaseModel):
     id: int
     user_id: int
-    ship_id: int
+    ship_tier: int
     duration: int
     start_date: datetime
     experience_to_get: int

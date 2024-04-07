@@ -112,28 +112,24 @@ def buy_premium(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
 
 def get_user_id_by_nick(user_nick: str, db):
     user = db.query(models.User).filter(models.User.nick == user_nick).first()
-    print(f"tofollow: {user.id}")
     return user.id
 
 @user_router.post("/follow_user", response_model=schemas.Friends)
 def follow_user(user_to_be_followed: schemas.AddFriend, jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
     decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
-    print(f"user_id: {user_id}")
     user_self = db.query(models.User).filter(models.User.id == user_id).first()
     
     if user_self.nick == user_to_be_followed.followed_user_nick:
         raise HTTPException(status_code=400, detail="Cannot follow self")
 
     check_if_followed_exists = db.query(models.User).filter(models.User.nick == user_to_be_followed.followed_user_nick).first()
-    # print(f"user_to_follow: {check_if_followed_exists is None}")
     if not check_if_followed_exists:
         raise HTTPException(status_code=400, detail="User you are trying to follow doesn't exist")
     
     followed_id = get_user_id_by_nick(user_to_be_followed.followed_user_nick, db)
     
     followed_already = db.query(models.FollowedFriends).filter(models.FollowedFriends.followed_user_id == followed_id, models.FollowedFriends.following_user_id == user_id).first()
-    print(f"followed_already: {followed_already is not None}")
     if followed_already:
         raise HTTPException(status_code=400, detail="You are already following this user")
 
