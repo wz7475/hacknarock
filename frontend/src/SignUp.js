@@ -15,6 +15,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { createUser } from './api/createUser'
 import { useNavigate } from 'react-router'
 import { useState } from 'react'
+import { verifyUser } from './api/verifyUser'
 
 // TODO remove, this demo shouldn't need to reset the theme.
 
@@ -31,12 +32,14 @@ export default function SignUp(props) {
             data.get('password').length === 0
         )
             setEmptyInput(true)
-        const userData = await createUser(
+        const token = await createUser(
             data.get('username'),
             data.get('password')
         )
-        console.log(userData)
-        if (userData.hasOwnProperty('jwt')) {
+        const userData = await verifyUser(token)
+        if (token.hasOwnProperty('jwt')) {
+            props.setUserData(userData)
+            let delay = await delay(1000)
             navigate('/profile')
         } else {
             setDuplicatedUsername(true)

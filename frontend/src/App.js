@@ -3,12 +3,7 @@ import ReactDOM from 'react-dom/client'
 import './index.css'
 import Game from './Game'
 import reportWebVitals from './reportWebVitals'
-import {
-    createBrowserRouter,
-    Navigate,
-    RouterProvider,
-    useNavigate,
-} from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Friends } from './Friends'
 import { Box } from '@mui/material'
 import Profile from './Profile'
@@ -20,6 +15,7 @@ import { verifyUser } from './api/verifyUser'
 import Cookie from 'js-cookie'
 import { amber } from '@mui/material/colors'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
+import { MainPage } from './MainPage'
 
 export default function App() {
     useEffect(() => {
@@ -27,6 +23,7 @@ export default function App() {
             const userData = await verifyUser()
             if (userData.hasOwnProperty('nick')) {
                 setToken('pla')
+                setUserData(userData)
             } else {
                 Cookie.remove('jwt_cookie', { path: '/' })
             }
@@ -37,6 +34,8 @@ export default function App() {
 
     const [token, setToken] = useState(null)
     const [isLoading, setisLoading] = useState(true)
+    const [userDataState, setUserData] = useState(null)
+
     const theme = createTheme({
         palette: {
             mode: 'light',
@@ -50,10 +49,10 @@ export default function App() {
     })
 
     const router = createBrowserRouter([
-        // {
-        //   path: "/",
-        //   element: <App />,
-        // },
+        {
+            path: '/',
+            element: <MainPage isLogged={token !== null} />,
+        },
         {
             path: '/app',
             element: (
@@ -67,11 +66,13 @@ export default function App() {
             path: '/profile',
             element: (
                 <Profile
+                    userData={userDataState}
                     isLogged={token !== null}
                     logOut={() => {
                         Cookie.remove('jwt_cookie', { path: '/' })
                         setToken(null)
                     }}
+                    setUserData={setUserData}
                 />
             ),
         },
@@ -85,12 +86,18 @@ export default function App() {
                 <SignInPage
                     isLogged={token !== null}
                     setToken={setToken}
+                    setUserData={setUserData}
                 />
             ),
         },
         {
             path: '/sign-up',
-            element: <SignUpPage isLogged={token !== null} />,
+            element: (
+                <SignUpPage
+                    setUserData={setUserData}
+                    isLogged={token !== null}
+                />
+            ),
         },
     ])
 

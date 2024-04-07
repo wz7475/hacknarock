@@ -21,7 +21,10 @@ export default function SignUpPage(props) {
                 flexDirection="column"
             >
                 <ToolBar isLogged={props.isLogged} />
-                <SignUp />
+                <SignUp
+                    isLogged={props.isLogged}
+                    setUserData={props.setUserData}
+                />
             </Box>
         </div>
     )

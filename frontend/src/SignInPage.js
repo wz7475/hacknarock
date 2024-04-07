@@ -22,7 +22,11 @@ export default function SignInPage(props) {
             >
                 <ToolBar isLogged={props.isLogged} />
 
-                <SignIn setToken={props.setToken} />
+                <SignIn
+                    isLogged={props.isLogged}
+                    setUserData={props.setUserData}
+                    setToken={props.setToken}
+                />
             </Box>
         </div>
     )
