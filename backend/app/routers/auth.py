@@ -1,5 +1,6 @@
-from fastapi import APIRouter
-from fastapi import FastAPI, Depends
+from fastapi import APIRouter, Response
+from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Depends, Request, Cookie
 from fastapi.security import OAuth2PasswordBearer
 import requests
 from jose import jwt
@@ -15,11 +16,17 @@ GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
 GOOGLE_REDIRECT_URI = "http://127.0.0.1:8080/google-auth"
 SCOPE = "https://www.googleapis.com/auth/calendar"
 
+
 @auth_router.get("/login/google/")
-async def login_google():
-    return {
-        "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope={SCOPE}"
-    }
+async def login_google(response: Response):
+    res = RedirectResponse(
+        f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope={SCOPE}")
+    res.set_cookie(key="test", value="dupa_jej")
+    return res
+    # return {
+    #     "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope={SCOPE}"
+    # }
+
 
 def get_dummy_event(year=2024, month=4, day=28):
     if month < 10:
@@ -45,8 +52,10 @@ def get_dummy_event(year=2024, month=4, day=28):
     }
     return event
 
+
 @auth_router.get("/google-auth")
-async def auth_google(code: str):
+async def auth_google(code: str, request: Request):
+    cookies = request.cookies.get("test")
     token_url = "https://accounts.google.com/o/oauth2/token"
     event_creation_url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
     data = {
@@ -57,8 +66,8 @@ async def auth_google(code: str):
         "grant_type": "authorization_code",
     }
     response = requests.post(token_url, data=data)
-    r = requests.post("https://oauth2.googleapis.com/token", data=data)
-    credentials = r.text
+    # r = requests.post("https://oauth2.googleapis.com/token", data=data)
+    # credentials = r.text
     access_token = response.json().get("access_token")
 
     # craete event
@@ -72,7 +81,7 @@ async def auth_google(code: str):
     response = requests.post(event_creation_url, headers=headers, json=get_dummy_event(day=10))
     event_response = response.json()
     if response.status_code == 200:
-        return {"message": "Event created", "event_id": event_response['id']}
+        return {"message": "Event created", "event_id": event_response['id'], "cookies": cookies}
     else:
         return {"message": "Failed to create event", "error": event_response}
 
