@@ -1,7 +1,20 @@
 import { Box, Typography } from '@mui/material'
 import { ToolBar } from './components/Toolbar'
 
+import { useEffect, useContext, useState } from 'react'
+import { ShipContext } from './ShipContext'
+import { getBoats } from './api/getBoats'
+import { getFriendBoats } from './api/getFriendBoats'
+import { getAllBoats } from './api/getAllBoats'
+
 export function MainPage(props) {
+    const shipContext = useContext(ShipContext)
+    useEffect(() => {
+        ;(async () => {
+            shipContext.setBoats((await getAllBoats()).map(({ tier }) => tier))
+        })()
+    }, [])
+
     return (
         <div>
             <Box
