@@ -29,6 +29,7 @@ export default function SignIn(props) {
         const userData = await login(data.get('username'), data.get('password'))
         if (userData.hasOwnProperty('jwt')) {
             console.log(userData)
+            props.setUserData(userData)
             props.setToken(userData.jwt)
             navigate('/profile')
         } else {
