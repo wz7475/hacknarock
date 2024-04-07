@@ -27,7 +27,7 @@ class Journey(Base):
     __tablename__ = 'journeys'
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
-    ship_id = Column(Integer, ForeignKey('ships.id'))
+    ship_tier = Column(Integer)
     duration = Column(Integer)
     start_date = Column(DateTime, default=datetime.datetime.utcnow)
     end_type = Column(Integer, default=0)

@@ -33,8 +33,6 @@ def create_journey(journey: schemas.Journey, jwt_cookie: str = Cookie(), db: Ses
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    ship = add_ship_to_user(schemas.ShipBase(tier=journey.ship_tier), jwt_cookie, db)
-    
     if journey.duration < 0:
         raise HTTPException(status_code=400, detail="Duration cannot be negative")
     
@@ -43,7 +41,7 @@ def create_journey(journey: schemas.Journey, jwt_cookie: str = Cookie(), db: Ses
     else:
         experience = journey.duration
     
-    db_journey = models.Journey(user_id=user_id, ship_id=ship.id, duration=journey.duration, start_date=journey.start_date, experience_to_get=experience)
+    db_journey = models.Journey(user_id=user_id, ship_tier=journey.ship_tier, duration=journey.duration, start_date=journey.start_date, experience_to_get=experience)
     db.add(db_journey)
     db.commit()
     db.refresh(db_journey)
@@ -61,8 +59,7 @@ def end_journey(end_journey: schemas.EndJourney, jwt_cookie: str = Cookie(), db:
     user = db.query(models.User).filter(models.User.id == journey.user_id).first()
     if end_journey.end_type == 0:
         user.experience += journey.experience_to_get
-    else:
-        remove_ship(journey.ship_id)
+        add_ship_to_user(schemas.ShipBase(tier=journey.ship_tier), jwt_cookie, db)
     
     db.commit()
     return JSONResponse(content={"message": f"Journey with id: '{end_journey.id}' has ended with status: '{MAP_STATUS_TO_TEXT[end_journey.end_type]}'"})
