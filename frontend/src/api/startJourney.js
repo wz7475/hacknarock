@@ -4,8 +4,8 @@ export const startJourney = async (duration, boatType) => {
     const data = new Date()
     const body = JSON.stringify({
         duration: duration,
-        start_date: new Date(),
-        ship_id: boatType,
+        start_date: new Date().toISOString().slice(0, -1),
+        ship_tier: boatType,
     })
 
     return await fetch(`${SERVER_ADRESS}/journeys/`, {

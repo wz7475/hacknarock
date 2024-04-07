@@ -14,6 +14,9 @@ import { ShipContext } from './ShipContext'
 import { useNavigate } from 'react-router'
 import { getFollowed } from './api/loadFriends'
 import { addFriend } from './api/addFriend'
+import { getBoats } from './api/getBoats'
+import { getFriendBoats } from './api/getFriendBoats'
+import { getAllBoats } from './api/getAllBoats'
 
 const columns = [
     {
@@ -37,7 +40,7 @@ const columns = [
         hideable: false,
         filterable: false,
         renderCell: (params) => {
-            return <Button>Visit</Button>
+            return <Button onClick={params.row.onClick}>Visit</Button>
         },
     },
 ]
@@ -59,6 +62,29 @@ export function Friends(props) {
     }
 
     useEffect(() => {
+        ;(async () => {
+            console.log(await getAllBoats())
+            if (props.isLogged) {
+                if (shipContext.friendId) {
+                    shipContext.setBoats(
+                        (await getFriendBoats(shipContext.friendId)).map(
+                            ({ tier }) => tier
+                        )
+                    )
+                } else {
+                    shipContext.setBoats(
+                        (await getBoats()).map(({ tier }) => tier)
+                    )
+                }
+            } else {
+                shipContext.setBoats(
+                    (await getAllBoats()).map(({ tier }) => tier)
+                )
+            }
+        })()
+    }, [props.isLogged, shipContext.friendId])
+
+    useEffect(() => {
         const fetchData = async () => {
             const userFriends = await getFollowed()
             if (userFriends.length > 0) {
@@ -72,6 +98,7 @@ export function Friends(props) {
 
     const [friendList, setFriendList] = useState([])
     const [isAddingFriend, setIsAddingFriend] = useState(false)
+    const [isShowingFleet, setIsShowingFleet] = useState(false)
     const [isUserNotFound, setIsUserNotFound] = useState(false)
     const [isUserAddedSuccessfully, setIsUserAddedSuccessfully] =
         useState(false)
@@ -86,7 +113,16 @@ export function Friends(props) {
                 flexDirection="column"
             >
                 <ToolBar isLogged={props.isLogged} />
-                <Slide in={!isAddingFriend}>
+                <Slide in={isShowingFleet}>
+                    <Button
+                        sx={{ mt: 5, mb: 5, width: '50%', mx: 'auto' }}
+                        variant="contained"
+                        onClick={() => setIsShowingFleet(false)}
+                    >
+                        Return
+                    </Button>
+                </Slide>
+                <Slide in={!isAddingFriend && !isShowingFleet}>
                     <Button
                         sx={{ mt: 5, mb: 5, width: '50%', mx: 'auto' }}
                         variant="contained"
@@ -95,8 +131,8 @@ export function Friends(props) {
                         Add new friend
                     </Button>
                 </Slide>
-                {!isAddingFriend && (
-                    <Grow in={!isAddingFriend}>
+                {!isAddingFriend && !isShowingFleet && (
+                    <Grow in={!isAddingFriend && !isShowingFleet}>
                         <Box
                             display="flex"
                             flexDirection="column"
@@ -114,7 +150,14 @@ export function Friends(props) {
                                 sx={{ ml: 2, mr: 2, mb: 3 }}
                                 disableColumnMenu
                                 bulkActionButtons={false}
-                                rows={friendList}
+                                rows={friendList.map((params) => ({
+                                    ...params,
+                                    onClick: () => {
+                                        shipContext.setFriendId(params.id)
+                                        shipContext.setType('friend')
+                                        setIsShowingFleet(true)
+                                    },
+                                }))}
                                 columns={columns}
                                 initialState={{
                                     pagination: {

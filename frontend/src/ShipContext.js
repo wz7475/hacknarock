@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useSpring } from '@react-spring/web'
 import PoissonDiskSampling from 'poisson-disk-sampling'
 
@@ -53,6 +53,8 @@ export function ShipContextProvider(props) {
         success: shipPositions[boats.length],
     }[type]
 
+    const [friendId, setFriendId] = useState(null)
+
     return (
         <ShipContext.Provider
             value={{
@@ -67,6 +69,8 @@ export function ShipContextProvider(props) {
                 instability: smoothInstability,
                 shipPositions,
                 mainBoatPosition,
+                friendId,
+                setFriendId,
             }}
         >
             {props.children}

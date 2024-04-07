@@ -7,6 +7,10 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
 import Picker from 'react-mobile-picker'
 import { ShipContext } from './ShipContext'
 import { startJourney } from './api/startJourney'
+import { endJourney } from './api/endJourney'
+import { getBoats } from './api/getBoats'
+import { getFriendBoats } from './api/getFriendBoats'
+import { getAllBoats } from './api/getAllBoats'
 
 const selections = {
     minutes: Array.from(Array(120).keys()),
@@ -17,25 +21,59 @@ export function Controls(props) {
     const shipContext = useContext(ShipContext)
     const [lastLeftTime, setLastLeftTime] = useState(null)
     const intervalTimer = useRef(null)
+    const timerInterval = useRef(null)
+    const [journeyId, setJourneyId] = useState(null)
+    const [endType, setEndType] = useState(null)
+    const [pickerValue, setPickerValue] = useState({
+        minutes: 0,
+        seconds: 0,
+    })
+    const [timeLeft, setTimeLeft] = useState(-1)
+
+    useEffect(() => {
+        ;(async () => {
+            console.log(await getAllBoats())
+            if (props.isLogged) {
+                if (shipContext.friendId) {
+                    shipContext.setBoats(
+                        (await getFriendBoats()).map(({ tier }) => tier)
+                    )
+                } else {
+                    shipContext.setBoats(
+                        (await getBoats()).map(({ tier }) => tier)
+                    )
+                }
+            } else {
+                shipContext.setBoats(
+                    (await getAllBoats()).map(({ tier }) => tier)
+                )
+            }
+        })()
+    }, [props.isLogged, shipContext.friendId])
 
     useEffect(() => {
         if (shipContext.type === 'ocean') {
-            const interval = setInterval(
-                () =>
-                    setTimeLeft((prevTimeLeft) => {
-                        if (prevTimeLeft === 0) {
-                            clearInterval(interval)
-                            shipContext.setType('success')
+            if (timerInterval.current === null) {
+                timerInterval.current = setInterval(
+                    () =>
+                        setTimeLeft((prevTimeLeft) => {
+                            if (prevTimeLeft === 0) {
+                                clearInterval(timerInterval.current)
+                                console.log('setting to success')
+                                shipContext.setType('success')
 
-                            return prevTimeLeft
-                        }
-                        if (prevTimeLeft > 0) {
-                            return prevTimeLeft - 1
-                        }
-                    }),
-                1000
-            )
-            return () => clearInterval(interval)
+                                return prevTimeLeft
+                            }
+                            if (prevTimeLeft > 0) {
+                                return prevTimeLeft - 1
+                            }
+                        }),
+                    1000
+                )
+            }
+        } else if (timerInterval.current !== null) {
+            clearInterval(timerInterval.current)
+            timerInterval.current = null
         }
 
         return () => {}
@@ -71,12 +109,6 @@ export function Controls(props) {
             1000
         )
     }
-
-    const [pickerValue, setPickerValue] = useState({
-        minutes: 0,
-        seconds: 0,
-    })
-    const [timeLeft, setTimeLeft] = useState(-1)
 
     return (
         <Box
@@ -278,15 +310,21 @@ export function Controls(props) {
                             mx: 20,
                             mb: 5,
                         }}
-                        onClick={() => {
+                        onClick={async () => {
                             shipContext.setType('ocean')
-                            startJourney(
-                                pickerValue.minutes * 60 + pickerValue.seconds,
-                                shipContext.params.boatType
+                            setJourneyId(
+                                (
+                                    await startJourney(
+                                        pickerValue.minutes * 60 +
+                                            pickerValue.seconds,
+                                        shipContext.params.boatType
+                                    )
+                                ).id
                             )
                             setTimeLeft(
                                 pickerValue.minutes * 60 + pickerValue.seconds
                             )
+                            setEndType(null)
                         }}
                     >
                         GO
@@ -302,12 +340,13 @@ export function Controls(props) {
                             mx: 20,
                             mb: 5,
                         }}
-                        onClick={() =>
+                        onClick={() => {
                             shipContext.setParams((oldParams) => ({
                                 ...oldParams,
                                 instability: 10,
                             }))
-                        }
+                            setEndType(1)
+                        }}
                     >
                         SINK 💀
                     </Button>
@@ -323,7 +362,10 @@ export function Controls(props) {
                             mx: 20,
                             mb: 5,
                         }}
-                        onClick={() => shipContext.setType('main')}
+                        onClick={async () => {
+                            await endJourney(journeyId, endType || 2)
+                            shipContext.setType('main')
+                        }}
                     >
                         BACK TO MAIN MENU
                     </Button>
@@ -339,7 +381,8 @@ export function Controls(props) {
                             mx: 20,
                             mb: 5,
                         }}
-                        onClick={() => {
+                        onClick={async () => {
+                            await endJourney(journeyId, 0)
                             shipContext.setType('main')
                             shipContext.setBoats((boats) => [
                                 ...boats,

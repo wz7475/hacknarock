@@ -323,7 +323,9 @@ function ShipBackground() {
                 />
             )}
 
-            {type !== 'ocean' && <BoatFleet boats={shipContext.boats} />}
+            {['ocean', 'empty'].indexOf(type) === -1 && (
+                <BoatFleet boats={shipContext.boats} />
+            )}
 
             <Camera bounds={bounds} />
         </Canvas>
