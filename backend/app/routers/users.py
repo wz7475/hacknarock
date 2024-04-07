@@ -38,7 +38,7 @@ def create_access_token(data: dict, expires_delta):
 def register(user: schemas.RegisterUser, db: Session = Depends(get_db)):
     hashed_password = pwd_context.hash(user.password, salt="a"*21 + "e")
     
-    nick_exists = db.query(models.User).filter(models.User.nick == user.nick).all()
+    nick_exists = db.query(models.User).filter(models.User.nick == user.nick).first()
     if nick_exists is not None:
         raise HTTPException(status_code=400, detail=f"User with nick: '{user.nick}' already exists")
     
