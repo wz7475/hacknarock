@@ -74,8 +74,10 @@ def login_for_access_token(data: schemas.UserLogin, response: Response, db: Sess
 def read_user(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
     decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
-    return db.query(models.User).filter(models.User.id == user_id).first()
-
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=400, detail="JWT expired")
+    return user
 
 @user_router.post("/grant_experience")
 def grant_experience(experience: schemas.UserExperience, jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
@@ -126,14 +128,14 @@ def follow_user(user_to_be_followed: schemas.AddFriend, jwt_cookie: str = Cookie
     if check_if_followed_exists is None:
         raise HTTPException(status_code=400, detail="User you are trying to follow doesn't exist")
     
-    followed_id = get_user_id_by_nick(user_to_be_followed.followed_user_nick)
+    followed_id = get_user_id_by_nick(user_to_be_followed.followed_user_nick, db)
     
     followed_already = db.query(models.FollowedFriends).filter(models.FollowedFriends.followed_user_id == followed_id and models.FollowedFriends.following_user_id == user_id).first()
     
     if followed_already is not None:
         raise HTTPException(status_code=400, detail="You are already following this user")
-    
-    friends = models.FollowedFriends(following_user_id=user_id, followed_user_id=user_to_be_followed.followed_user_id)
+
+    friends = models.FollowedFriends(following_user_id=user_id, followed_user_id=followed_id)
     db.add(friends)
     db.commit()
     db.refresh(friends)

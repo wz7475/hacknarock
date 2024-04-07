@@ -33,8 +33,10 @@ class UserLogin(BaseModel):
 class AddFriend(BaseModel):
     followed_user_nick: str
 
-class Friends(AddFriend):
+class Friends(BaseModel):
     id: int
+    following_user_id: int
+    followed_user_id: int
     class Config:
         orm_mode = True
 
