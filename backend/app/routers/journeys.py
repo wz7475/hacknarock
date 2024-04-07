@@ -33,6 +33,9 @@ def create_journey(journey: schemas.Journey, jwt_cookie: str = Cookie(), db: Ses
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    if journey.ship_tier not in range(5):
+        raise HTTPException(status_code=400, detail="Ship tier has to be an integer between 0 and 4")
+    
     if journey.duration < 0:
         raise HTTPException(status_code=400, detail="Duration cannot be negative")
     

@@ -21,7 +21,7 @@ def add_ship_to_user(data: schemas.ShipBase, jwt_cookie: str = Cookie(), db: Ses
     decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
     if data.tier not in range(5):
-        raise HTTPException(status_code=400, detail="Ship tier has to be an integer between 1 and 5")
+        raise HTTPException(status_code=400, detail="Ship tier has to be an integer between 0 and 4")
     
     ship = models.Ships(user_id=user_id, tier=data.tier)
     db.add(ship)
