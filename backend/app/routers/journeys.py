@@ -7,7 +7,7 @@ import app.schemas as schemas
 from app.cfg import SECRET_KEY, HASHING_ALGORITHM
 from jose import jwt
 import datetime
-from app.routers.ships import add_ship_to_user
+from app.routers.ships import add_ship_to_user, remove_ship
 
 journey_router = APIRouter(prefix="/journeys")
 
@@ -61,6 +61,8 @@ def end_journey(end_journey: schemas.EndJourney, jwt_cookie: str = Cookie(), db:
     user = db.query(models.User).filter(models.User.id == journey.user_id).first()
     if end_journey.end_type == 0:
         user.experience += journey.experience_to_get
+    else:
+        remove_ship(journey.ship_id)
     
     db.commit()
     return JSONResponse(content={"message": f"Journey with id: '{end_journey.id}' has ended with status: '{MAP_STATUS_TO_TEXT[end_journey.end_type]}'"})
