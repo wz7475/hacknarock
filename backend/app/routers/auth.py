@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Header
 from fastapi.responses import RedirectResponse
 from fastapi import FastAPI, Depends, Request, Cookie
 from fastapi.security import OAuth2PasswordBearer
@@ -9,6 +9,7 @@ import os
 
 auth_router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+from jose import jwt
 
 load_dotenv()
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
@@ -18,10 +19,10 @@ SCOPE = "https://www.googleapis.com/auth/calendar"
 
 
 @auth_router.get("/login/google/")
-async def login_google(response: Response):
+async def login_google(authorization: str = Header()):
     res = RedirectResponse(
         f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope={SCOPE}")
-    res.set_cookie(key="test", value="dupa_jej")
+    res.set_cookie(key="jwt", value=authorization)
     return res
     # return {
     #     "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope={SCOPE}"
@@ -52,12 +53,21 @@ def get_dummy_event(year=2024, month=4, day=28):
     }
     return event
 
+def create_event(access_token: str):
+    # craete event
+    event_creation_url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+    response = requests.post(event_creation_url, headers=headers, json=get_dummy_event(day=10))
+
 
 @auth_router.get("/google-auth")
 async def auth_google(code: str, request: Request):
-    cookies = request.cookies.get("test")
+    jwt_token = request.cookies.get("jwt")
     token_url = "https://accounts.google.com/o/oauth2/token"
-    event_creation_url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
     data = {
         "code": code,
         "client_id": GOOGLE_CLIENT_ID,
@@ -66,25 +76,14 @@ async def auth_google(code: str, request: Request):
         "grant_type": "authorization_code",
     }
     response = requests.post(token_url, data=data)
-    # r = requests.post("https://oauth2.googleapis.com/token", data=data)
-    # credentials = r.text
     access_token = response.json().get("access_token")
+    # save in redis     jwt: access_token
+    redis = {}
+    redis[jwt_token] = access_token
 
-    # craete event
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-    }
-    with open("token.txt", "w") as f:
-        f.write(access_token)
-    response = requests.post(event_creation_url, headers=headers, json=get_dummy_event(day=10))
-    event_response = response.json()
-    if response.status_code == 200:
-        return {"message": "Event created", "event_id": event_response['id'], "cookies": cookies}
-    else:
-        return {"message": "Failed to create event", "error": event_response}
 
+    res = RedirectResponse("http://172.98.2.193:3000/app")
+    return res
 
 @auth_router.get("/token/")
 async def get_token(token: str = Depends(oauth2_scheme)):
