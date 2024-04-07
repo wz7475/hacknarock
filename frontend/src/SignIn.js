@@ -13,14 +13,20 @@ import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { login } from './api/login'
+import { useNavigate } from 'react-router'
 
 export default function SignIn(props) {
-    const handleSubmit = (event) => {
+    const navigate = useNavigate()
+
+    const handleSubmit = async (event) => {
         event.preventDefault()
         const data = new FormData(event.currentTarget)
-        const userData = login(data.get('username'), data.get('password'))
+        const userData = await login(data.get('username'), data.get('password'))
         if (userData !== null) {
-            props.setToken(userData.token)
+            console.log(userData)
+            props.setToken(userData.jwt)
+            document.cookie = `token=${userData.jwt}`
+            navigate('/profile')
         }
     }
 
@@ -56,10 +62,10 @@ export default function SignIn(props) {
                         margin="normal"
                         required
                         fullWidth
-                        id="email"
-                        label="Email Address"
-                        name="email"
-                        autoComplete="email"
+                        id="username"
+                        label="Username"
+                        name="username"
+                        autoComplete="username"
                         autoFocus
                     />
                     <TextField

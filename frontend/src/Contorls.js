@@ -40,16 +40,13 @@ export function Controls(props) {
 
     window.onfocus = function () {
         const timeOutsideApp = Date.now() - lastLeftTime
-        const newInstability =
-            shipContext.params.instability + timeOutsideApp / 10000
-        if (newInstability > 10) {
-            shipContext.setType('failure')
-        } else {
-            const newParams = (JSON.parse(
-                JSON.stringify(shipContext.params)
-            ).instability = newInstability)
-            shipContext.setParams(newParams)
-        }
+        shipContext.setParams((oldParams) => ({
+            ...oldParams,
+            instability: Math.min(
+                oldParams.instability + timeOutsideApp / 10000,
+                10
+            ),
+        }))
     }
 
     const [pickerValue, setPickerValue] = useState({
