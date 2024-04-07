@@ -37,6 +37,11 @@ def create_access_token(data: dict, expires_delta):
 @user_router.post("/register", response_model=schemas.User)
 def register(user: schemas.RegisterUser, db: Session = Depends(get_db)):
     hashed_password = pwd_context.hash(user.password, salt="a"*21 + "e")
+    
+    nick_exists = db.query(models.User).filter(models.User.nick == user.nick).all()
+    if nick_exists is not None:
+        raise HTTPException(status_code=400, detail=f"User with nick: '{user.nick}' already exists")
+    
     db_user = models.User(nick=user.nick, is_premium=user.is_premium, experience=user.experience, hash_password=hashed_password)
     db.add(db_user)
     db.commit()
