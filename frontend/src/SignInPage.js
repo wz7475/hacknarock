@@ -21,7 +21,8 @@ export default function SignInPage(props) {
                 flexDirection="column"
             >
                 <ToolBar isLogged={props.isLogged} />
-                <SignIn />
+
+                <SignIn setToken={props.setToken} />
             </Box>
         </div>
     )

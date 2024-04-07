@@ -14,6 +14,8 @@ const selections = {
 
 export function Controls(props) {
     const shipContext = useContext(ShipContext)
+    const [lastLeftTime, setLastLeftTime] = useState(null)
+
     useEffect(() => {
         const interval = setInterval(
             () =>
@@ -31,6 +33,24 @@ export function Controls(props) {
 
         return () => clearInterval(interval)
     }, [])
+
+    window.onblur = function () {
+        setLastLeftTime(Date.now())
+    }
+
+    window.onfocus = function () {
+        const timeOutsideApp = Date.now() - lastLeftTime
+        const newInstability =
+            shipContext.params.instability + timeOutsideApp / 10000
+        if (newInstability > 10) {
+            shipContext.setType('failure')
+        } else {
+            const newParams = (JSON.parse(
+                JSON.stringify(shipContext.params)
+            ).instability = newInstability)
+            shipContext.setParams(newParams)
+        }
+    }
 
     const [pickerValue, setPickerValue] = useState({
         minutes: 0,

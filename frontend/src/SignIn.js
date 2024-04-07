@@ -12,15 +12,16 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { login } from './api/login'
 
-export default function SignIn() {
+export default function SignIn(props) {
     const handleSubmit = (event) => {
         event.preventDefault()
         const data = new FormData(event.currentTarget)
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        })
+        const userData = login(data.get('username'), data.get('password'))
+        if (userData !== null) {
+            props.setToken(userData.token)
+        }
     }
 
     return (
