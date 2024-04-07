@@ -19,7 +19,7 @@ SCOPE = "https://www.googleapis.com/auth/calendar"
 
 
 @auth_router.get("/login/google/")
-async def login_google(authorization: str = Header()):
+async def login_google(authorization: str = Cookie()):
     res = RedirectResponse(
         f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope={SCOPE}")
     res.set_cookie(key="jwt", value=authorization)
