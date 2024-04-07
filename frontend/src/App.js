@@ -18,6 +18,8 @@ import ShipBackground from './Ships'
 import { ShipContextProvider } from './ShipContext'
 import { verifyUser } from './api/verifyUser'
 import Cookie from 'js-cookie'
+import { amber } from '@mui/material/colors'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
 
 export default function App() {
     useEffect(() => {
@@ -35,6 +37,18 @@ export default function App() {
 
     const [token, setToken] = useState(null)
     const [isLoading, setisLoading] = useState(true)
+    const theme = createTheme({
+        palette: {
+            mode: 'light',
+            primary: {
+                main: amber[700],
+            },
+            secondary: {
+                main: '#f50057',
+            },
+        },
+    })
+
     const router = createBrowserRouter([
         // {
         //   path: "/",
@@ -81,9 +95,9 @@ export default function App() {
     ])
 
     return (
-        <>
+        <div>
             {!isLoading && (
-                <div>
+                <ThemeProvider theme={theme}>
                     <ShipContextProvider>
                         <Box
                             maxWidth
@@ -96,8 +110,8 @@ export default function App() {
                         </Box>
                         <RouterProvider router={router} />
                     </ShipContextProvider>
-                </div>
+                </ThemeProvider>
             )}
-        </>
+        </div>
     )
 }

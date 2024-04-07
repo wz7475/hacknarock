@@ -193,7 +193,12 @@ export function Controls(props) {
                         <Fab
                             color="primary"
                             size="small"
-                            // onClick={() => setshipContext.type("main")}
+                            onClick={() =>
+                                shipContext.setParams((oldParams) => ({
+                                    ...oldParams,
+                                    boatType: (oldParams.boatType + 4) % 5,
+                                }))
+                            }
                             sx={{ ml: 5 }}
                         >
                             <KeyboardArrowLeftIcon />
@@ -209,7 +214,12 @@ export function Controls(props) {
                         <Fab
                             color="primary"
                             size="small"
-                            // onClick={() => pass}
+                            onClick={() =>
+                                shipContext.setParams((oldParams) => ({
+                                    ...oldParams,
+                                    boatType: (oldParams.boatType + 1) % 5,
+                                }))
+                            }
                             sx={{ mr: 5, ml: 'auto' }}
                         >
                             <KeyboardArrowRightIcon />
@@ -265,7 +275,12 @@ export function Controls(props) {
                             mx: 20,
                             mb: 5,
                         }}
-                        onClick={() => shipContext.setType('failure')}
+                        onClick={() =>
+                            shipContext.setParams((oldParams) => ({
+                                ...oldParams,
+                                instability: 10,
+                            }))
+                        }
                     >
                         SINK 💀
                     </Button>
