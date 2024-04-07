@@ -125,7 +125,7 @@ const Water = (props) => {
                 }))
 
                 failTimeout.current = null
-            }, 5000)
+            }, 2000)
         }
     }, [])
 

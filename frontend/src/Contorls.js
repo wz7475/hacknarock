@@ -19,22 +19,27 @@ export function Controls(props) {
     const intervalTimer = useRef(null)
 
     useEffect(() => {
-        const interval = setInterval(
-            () =>
-                setTimeLeft((prevTimeLeft) => {
-                    if (prevTimeLeft === 0) {
-                        return prevTimeLeft
-                    }
-                    if (prevTimeLeft > 0) {
-                        return prevTimeLeft - 1
-                    }
-                }),
-            1000
-        )
-        shipContext.setType('main')
+        if (shipContext.type === 'ocean') {
+            const interval = setInterval(
+                () =>
+                    setTimeLeft((prevTimeLeft) => {
+                        if (prevTimeLeft === 0) {
+                            clearInterval(interval)
+                            shipContext.setType('success')
 
-        return () => clearInterval(interval)
-    }, [])
+                            return prevTimeLeft
+                        }
+                        if (prevTimeLeft > 0) {
+                            return prevTimeLeft - 1
+                        }
+                    }),
+                1000
+            )
+            return () => clearInterval(interval)
+        }
+
+        return () => {}
+    }, [shipContext])
 
     window.onblur = function () {
         clearInterval(intervalTimer.current)
@@ -48,7 +53,7 @@ export function Controls(props) {
             shipContext.setParams((oldParams) => ({
                 ...oldParams,
                 instability: Math.min(
-                    oldParams.instability + timeOutsideApp / 10000,
+                    oldParams.instability + timeOutsideApp / 2000,
                     10
                 ),
             }))
@@ -58,7 +63,10 @@ export function Controls(props) {
             () =>
                 shipContext.setParams((prevParams) => ({
                     ...prevParams,
-                    instability: Math.max(prevParams.instability - 0.5, 3),
+                    instability:
+                        prevParams.instability === 10
+                            ? 10
+                            : Math.max(prevParams.instability - 0.5, 3),
                 })),
             1000
         )
@@ -177,6 +185,25 @@ export function Controls(props) {
                     </Box>
                 </Grow>
             )}
+            {shipContext.type === 'success' && (
+                <Grow in={shipContext.type === 'success'}>
+                    <Box sx={{ mt: 5, ml: 'auto', mr: 'auto' }}>
+                        <Typography
+                            variant="h4"
+                            textAlign="center"
+                        >
+                            Well done! You expanded your fleet!
+                        </Typography>
+                        <Typography
+                            sx={{ mt: 2 }}
+                            variant="h5"
+                            textAlign="center"
+                        >
+                            Keep going and make it stronger!!
+                        </Typography>
+                    </Box>
+                </Grow>
+            )}
             <div
                 style={{
                     width: '100vw',
@@ -255,7 +282,7 @@ export function Controls(props) {
                             shipContext.setType('ocean')
                             startJourney(
                                 pickerValue.minutes * 60 + pickerValue.seconds,
-                                props.token
+                                shipContext.params.boatType
                             )
                             setTimeLeft(
                                 pickerValue.minutes * 60 + pickerValue.seconds
@@ -290,12 +317,35 @@ export function Controls(props) {
                 <Grow in={shipContext.type === 'failure'}>
                     <Button
                         variant="contained"
+                        color="error"
                         sx={{
                             mt: 5,
                             mx: 20,
                             mb: 5,
                         }}
                         onClick={() => shipContext.setType('main')}
+                    >
+                        BACK TO MAIN MENU
+                    </Button>
+                </Grow>
+            )}
+            {shipContext.type === 'success' && (
+                <Grow in={shipContext.type === 'success'}>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        sx={{
+                            mt: 5,
+                            mx: 20,
+                            mb: 5,
+                        }}
+                        onClick={() => {
+                            shipContext.setType('main')
+                            shipContext.setBoats((boats) => [
+                                ...boats,
+                                shipContext.params.boatType,
+                            ])
+                        }}
                     >
                         BACK TO MAIN MENU
                     </Button>
