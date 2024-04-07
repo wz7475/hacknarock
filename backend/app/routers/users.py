@@ -17,6 +17,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def authenticate_user(username, password, db):
     user = db.query(models.User).filter(models.User.nick == username).first()
+    if user is None:
+        raise HTTPException(status_code=400, detail=f"User with given nick: '{username}' doesn't exist")
     hashed_password = pwd_context.hash(password, salt="a"*21 + "e")
     if user.hash_password == hashed_password:
         return user
@@ -34,8 +36,8 @@ def create_access_token(data: dict, expires_delta):
     return encoded_jwt
 
 
-@user_router.post("/register", response_model=schemas.User)
-def register(user: schemas.RegisterUser, db: Session = Depends(get_db)):
+@user_router.post("/register")
+def register(user: schemas.RegisterUser, db: Session = Depends(get_db)) -> schemas.Jwt:
     hashed_password = pwd_context.hash(user.password, salt="a"*21 + "e")
     
     nick_exists = db.query(models.User).filter(models.User.nick == user.nick).first()
@@ -46,8 +48,12 @@ def register(user: schemas.RegisterUser, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
-
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"user_nick": db_user.nick, "user_id": db_user.id}, expires_delta=access_token_expires
+    )
+    return schemas.Jwt(jwt=access_token)
 
 @user_router.post("/login")
 def login_for_access_token(data: schemas.UserLogin, db: Session = Depends(get_db)) -> schemas.Jwt:
