@@ -108,25 +108,30 @@ def buy_premium(jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
     return JSONResponse(content={"message": f"User with id: {user_id} is now premium"})
 
 
+def get_user_id_by_nick(user_nick: str, db):
+    user = db.query(models.User).filter(models.User.nick == user_nick).first()
+    return user.id
+
 @user_router.post("/follow_user", response_model=schemas.Friends)
 def follow_user(user_to_be_followed: schemas.AddFriend, jwt_cookie: str = Cookie(), db: Session = Depends(get_db)):
     decoded_jwt = jwt.decode(jwt_cookie, SECRET_KEY, algorithms=[HASHING_ALGORITHM])
     user_id = decoded_jwt.get('user_id')
     
-    if user_id == user_to_be_followed.followed_user_id:
+    user_self = db.query(models.User).filter(models.User.id == user_id).first()
+    
+    if user_self.nick == user_to_be_followed.followed_user_nick:
         raise HTTPException(status_code=400, detail="Cannot follow self")
 
-    check_if_followed_exists = db.query(models.User).filter(models.User.id == user_to_be_followed.followed_user_id).first()
+    check_if_followed_exists = db.query(models.User).filter(models.User.nick == user_to_be_followed.followed_user_nick).first()
     if check_if_followed_exists is None:
         raise HTTPException(status_code=400, detail="User you are trying to follow doesn't exist")
     
-    followed_already = db.query(models.FollowedFriends).filter(models.FollowedFriends.followed_user_id == user_to_be_followed.followed_user_id and models.FollowedFriends.following_user_id == user_id).first()
+    followed_id = get_user_id_by_nick(user_to_be_followed.followed_user_nick)
+    
+    followed_already = db.query(models.FollowedFriends).filter(models.FollowedFriends.followed_user_id == followed_id and models.FollowedFriends.following_user_id == user_id).first()
     
     if followed_already is not None:
         raise HTTPException(status_code=400, detail="You are already following this user")
-    
-    if followed_already:
-        return followed_already
     
     friends = models.FollowedFriends(following_user_id=user_id, followed_user_id=user_to_be_followed.followed_user_id)
     db.add(friends)

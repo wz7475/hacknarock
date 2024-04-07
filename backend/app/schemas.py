@@ -31,7 +31,7 @@ class UserLogin(BaseModel):
 # For friends
 
 class AddFriend(BaseModel):
-    followed_user_id: int
+    followed_user_nick: str
 
 class Friends(AddFriend):
     id: int
@@ -55,6 +55,7 @@ class JourneyResponseModel(BaseModel):
     ship_id: int
     duration: int
     start_date: datetime
+    experience_to_get: int
     end_type: int = 0
 
     class Config:

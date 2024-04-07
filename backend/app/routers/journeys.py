@@ -6,6 +6,7 @@ import app.models as models
 import app.schemas as schemas
 from app.cfg import SECRET_KEY, HASHING_ALGORITHM
 from jose import jwt
+import datetime
 
 journey_router = APIRouter(prefix="/journeys")
 
@@ -33,8 +34,15 @@ def create_journey(journey: schemas.Journey, jwt_cookie: str = Cookie(), db: Ses
     ship = db.query(models.Ships).filter(models.Ships.id == journey.ship_id).first()
     if not ship:
         raise HTTPException(status_code=404, detail="Ship not found")
-
-    db_journey = models.Journey(user_id=user_id, ship_id=journey.ship_id, duration=journey.duration, start_date=journey.start_date)
+    if journey.duration < 0:
+        raise HTTPException(status_code=400, detail="Duration cannot be negative")
+    
+    if journey.start_date - datetime.datetime.now() > datetime.timedelta(days=3):
+        experience = journey.duration * 3
+    else:
+        experience = journey.duration
+    
+    db_journey = models.Journey(user_id=user_id, ship_id=journey.ship_id, duration=journey.duration, start_date=journey.start_date, experience_to_get=experience)
     db.add(db_journey)
     db.commit()
     db.refresh(db_journey)
@@ -48,6 +56,11 @@ def end_journey(end_journey: schemas.EndJourney, jwt_cookie: str = Cookie(), db:
         raise HTTPException(status_code=400, detail="Journey end-type has to be in range 0 and 2")
     journey = db.query(models.Journey).filter(models.Journey.id == end_journey.id and models.Journey.user_id == decoded_jwt.get('user_id')).first()
     journey.end_type = end_journey.end_type
+    
+    user = db.query(models.User).filter(models.User.id == journey.user_id).first()
+    if end_journey.end_type == 0:
+        user.experience += journey.experience_to_get
+    
     db.commit()
     return JSONResponse(content={"message": f"Journey with id: '{end_journey.id}' has ended with status: '{MAP_STATUS_TO_TEXT[end_journey.end_type]}'"})
 
